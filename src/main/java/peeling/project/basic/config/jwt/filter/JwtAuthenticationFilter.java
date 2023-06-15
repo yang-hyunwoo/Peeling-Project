@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,8 +17,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.config.jwt.JwtProcess;
 import peeling.project.basic.config.jwt.JwtVO;
+import peeling.project.basic.domain.member.Member;
 import peeling.project.basic.dto.request.member.LoginReqDto;
 import peeling.project.basic.dto.response.member.LoginResDto;
+import peeling.project.basic.exception.CustomApiException;
+import peeling.project.basic.repository.MemberRepository;
 import peeling.project.basic.util.CustomResponseUtil;
 
 import java.io.IOException;
@@ -29,10 +33,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private AuthenticationManager authenticationManager;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+    private MemberRepository memberRepository;
+
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
         super(authenticationManager);
         setFilterProcessesUrl("/api/login");
         this.authenticationManager = authenticationManager;
+        this.memberRepository = memberRepository;
     }
 
     //post /login
@@ -66,10 +73,22 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         log.debug("디버그 : successfulAuthentication 호출됨");
         LoginUser loginUser = (LoginUser) authResult.getPrincipal();
-        String jwtToken = JwtProcess.create(loginUser);
-        response.addHeader(JwtVO.HEADER, jwtToken);
+        String accessToken = JwtProcess.create(loginUser);
+        String refreshToken = JwtProcess.refresh(loginUser);
 
+        //refresh token db 저장 및 jwt 분해 해서 refresh 토큰 조회 후 있으면 access 다시 리턴
+//        ResponseCookie cookie = ResponseCookie.from("accessToken", jwtToken)
+//                .maxAge(7 * 24 * 60 * 60)
+//                .path("/")
+//                .build();
+//        response.addHeader("Set-cookie", cookie.toString());
+
+        response.addHeader(JwtVO.HEADER, accessToken);
+        response.addHeader("REFRESH_TOKEN", refreshToken);
         LoginResDto loginRespDto = new LoginResDto(loginUser.getMember());
+        Member member = memberRepository.findById(loginUser.getMember().getId()).orElseThrow(() -> new CustomApiException("유저를 찾을수 없습니다"));
+        member.refreshTokenUpdIns(refreshToken);
+        memberRepository.save(member);
         CustomResponseUtil.success(response, loginRespDto);
 
     }

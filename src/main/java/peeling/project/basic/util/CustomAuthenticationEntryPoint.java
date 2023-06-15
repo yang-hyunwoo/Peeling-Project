@@ -13,8 +13,18 @@ import java.io.IOException;
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+        //인증이 필요 없는 url 에서는 작동 하지 않는다.
+        String exception = (String)request.getAttribute("exception");
+        if(exception==null) {
+            exception = "로그인을 진행해 주세요.";
+        }
+
+        responseWrite(response,exception);
+    }
+
+    private static void responseWrite(HttpServletResponse response , String msg) throws IOException {
         ObjectMapper om = new ObjectMapper();
-        Response<String> error = Response.error("ERROR", HttpStatus.UNAUTHORIZED.value(), "로그인을 진행해 주세요.");
+        Response<String> error = Response.error("ERROR", HttpStatus.UNAUTHORIZED.value(), msg);
         String responseBody = om.writeValueAsString(error);
         response.setContentType("application/json");
         response.setCharacterEncoding("utf-8");
