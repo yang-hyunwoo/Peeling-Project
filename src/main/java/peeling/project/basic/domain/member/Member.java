@@ -45,6 +45,8 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    private String refreshToken;
+
     @Builder
     public Member(Long id,
                 String username,
@@ -52,6 +54,7 @@ public class Member {
                 String email,
                 String fullname,
                 MemberEnum role,
+                String refreshToken,
                 LocalDateTime createdAt,
                 LocalDateTime updatedAt) {
         this.id = id;
@@ -60,7 +63,13 @@ public class Member {
         this.email = email;
         this.fullname = fullname;
         this.role = role;
+        this.refreshToken = refreshToken;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
+
+    public void refreshTokenUpdIns(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
 }
