@@ -1,5 +1,7 @@
 package peeling.project.basic.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,13 +10,16 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import peeling.project.basic.config.jwt.filter.JwtAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthorizationFilter;
 import peeling.project.basic.repository.MemberRepository;
 import peeling.project.basic.util.CustomAccessDeniedHandler;
 import peeling.project.basic.util.CustomAuthenticationEntryPoint;
+import peeling.project.basic.util.CustomLogOutHandler;
 
 @Configuration
 @RequiredArgsConstructor
@@ -40,6 +45,10 @@ public class SecurityConfig {
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //자바의 세션을 사용하지 않겠다.
                 .formLogin(formLogin -> formLogin.disable()) //시큐리티의 폼로그인을 사용하지 않겠다
                 .httpBasic(httpBasic -> httpBasic.disable()) //브라우저가 팝업창을 이용하여 사용자 인증을 진행하지 않겠다.
+                .logout(logout-> logout.logoutUrl("/api/logout").addLogoutHandler(new CustomLogOutHandler())
+
+                        .deleteCookies("PA_T")
+                        .deleteCookies("PR_T"))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager,memberRepository))
                 .addFilterBefore(new JwtAuthorizationFilter(authenticationManager, memberRepository), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
