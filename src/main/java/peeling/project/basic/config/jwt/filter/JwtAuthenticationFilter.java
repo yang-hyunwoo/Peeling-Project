@@ -35,6 +35,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private MemberRepository memberRepository;
 
+    private boolean localCookie = false;
+
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
         super(authenticationManager);
         setFilterProcessesUrl("/api/login");
@@ -76,19 +78,39 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String accessToken = JwtProcess.create(loginUser);
         String refreshToken = JwtProcess.refresh(loginUser);
 
-        //refresh token db 저장 및 jwt 분해 해서 refresh 토큰 조회 후 있으면 access 다시 리턴
-//        ResponseCookie cookie = ResponseCookie.from("accessToken", jwtToken)
-//                .maxAge(7 * 24 * 60 * 60)
-//                .path("/")
-//                .build();
-//        response.addHeader("Set-cookie", cookie.toString());
+        /**
+         * 헤더로 설정 or 쿠키로 설정
+         */
+        if(localCookie) {
+            response.addHeader(JwtVO.HEADER, accessToken);
+            response.addHeader("REFRESH_TOKEN", refreshToken);
+        } else {
+            //쿠키 시간은 동일하게 맞춤 accesstoken에 expired 타임이 있기 때문 ??...
+            ResponseCookie cookie = ResponseCookie.from("PA_T", accessToken.split(" ")[1].trim())
+                    .maxAge(7 * 24 * 60 * 60) //2주간 가지고 있기
+//                    .httpOnly(true)
+//                    .secure(true)
+                    .path("/")
+                    .build();
+            response.addHeader("Set-cookie", cookie.toString());
 
-        response.addHeader(JwtVO.HEADER, accessToken);
-        response.addHeader("REFRESH_TOKEN", refreshToken);
+            ResponseCookie refreshCookie = ResponseCookie.from("PR_T", refreshToken)
+                    .maxAge(7 * 24 * 60 * 60)  //2주간 가지고 있기
+//                    .httpOnly(true)
+//                    .secure(true)
+                    .path("/")
+                    .build();
+            response.addHeader("Set-cookie", refreshCookie.toString());
+        }
+
+        boolean dbInsert = false;
+
         LoginResDto loginRespDto = new LoginResDto(loginUser.getMember());
         Member member = memberRepository.findById(loginUser.getMember().getId()).orElseThrow(() -> new CustomApiException("유저를 찾을수 없습니다"));
-        member.refreshTokenUpdIns(refreshToken);
-        memberRepository.save(member);
+        if(dbInsert) {
+            member.refreshTokenUpdIns(refreshToken);
+            memberRepository.save(member);
+        }
         CustomResponseUtil.success(response, loginRespDto);
 
     }

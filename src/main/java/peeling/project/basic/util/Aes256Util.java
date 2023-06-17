@@ -1,7 +1,5 @@
 package peeling.project.basic.util;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import peeling.project.basic.exception.CustomApiException;
 
 import java.util.Base64;

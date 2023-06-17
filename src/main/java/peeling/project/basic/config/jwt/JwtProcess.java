@@ -2,7 +2,6 @@ package peeling.project.basic.config.jwt;
 
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +9,8 @@ import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.domain.constant.MemberEnum;
 import peeling.project.basic.domain.member.Member;
 import peeling.project.basic.util.Aes256Util;
-
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
 
@@ -61,4 +61,18 @@ public class JwtProcess {
         Aes256Util aes256 = new Aes256Util();
         return  Long.parseLong(aes256.decrypt(decodedJWT.getClaim("id").asString()));
     }
+
+    public static boolean verifyExpired(String token) {
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(JwtVO.SECRET)).build().verify(token);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime refreshExpired = decodedJWT.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        if(now.compareTo(refreshExpired) <=1) {
+            return true;
+        }
+        return false;
+
+    }
+
+
 }

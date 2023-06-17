@@ -45,6 +45,7 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(length = 4000)
     private String refreshToken;
 
     @Builder

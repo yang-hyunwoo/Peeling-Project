@@ -2,13 +2,10 @@ package peeling.project.basic.controller.member;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import peeling.project.basic.dto.request.member.JoinMemberReqDto;
 import peeling.project.basic.dto.response.member.JoinMemberResDto;
-import peeling.project.basic.repository.MemberRepository;
 import peeling.project.basic.service.MemberService;
 import peeling.project.basic.util.Response;
 
