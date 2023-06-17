@@ -33,7 +33,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     private final MemberRepository memberRepository;
 
-    private boolean localCookie = false;
+    private boolean localCookie = false; //true : 로컬  false : 쿠키
 
 
     public JwtAuthorizationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {

@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private MemberRepository memberRepository;
 
-    private boolean localCookie = false;
+    private boolean localCookie = false; //true : 로컬  false : 쿠키
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
         super(authenticationManager);
