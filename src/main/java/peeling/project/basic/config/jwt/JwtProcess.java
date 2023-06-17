@@ -23,7 +23,7 @@ public class JwtProcess {
         String id = aes256.encrypt(loginUser.getMember().getId().toString());
         String role = aes256.encrypt(loginUser.getMember().getRole().name());
         String jwtToken = JWT.create()
-                .withSubject("bank")
+                .withSubject("peel-project")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtVO.EXPIRATION_TIME))
                 .withClaim("id", id)
                 .withClaim("role", role)
@@ -37,7 +37,7 @@ public class JwtProcess {
         String id = aes256.encrypt(loginUser.getMember().getId().toString());
         String uuid = aes256.encrypt(UUID.randomUUID().toString());
         String jwtToken = JWT.create()
-                .withSubject("bank")
+                .withSubject("peel-project")
                 .withExpiresAt(new Date(System.currentTimeMillis() +JwtVO.EXPIRATION_TIME*2))
                 .withClaim("id", id)
                 .withClaim("refreshToken", uuid)
