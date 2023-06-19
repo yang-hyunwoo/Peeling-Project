@@ -31,3 +31,8 @@ jwt:
   secret-key: peeling.project.secret_key
   expiration-time: 1000 * 60 * 60 * 24 * 7;  #1주일
   header: Authorization
+
+aes:
+  body: 7bMLmQkJ2oEwwae9usoOxnomqGRcTH8G
+  create: Kd9tBIIgDPrrADk0OCy6Gg68M2eOmkJv
+  refresh: hCe1RdyYohgZS3rmf5aztm4kOH7tn5Dx

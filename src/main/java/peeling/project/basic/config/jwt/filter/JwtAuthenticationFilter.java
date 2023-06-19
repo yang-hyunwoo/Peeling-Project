@@ -6,8 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +26,8 @@ import peeling.project.basic.util.CustomResponseUtil;
 
 import java.io.IOException;
 
+import static peeling.project.basic.config.jwt.JwtProcess.CreateCookie;
+
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -36,6 +38,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     private MemberRepository memberRepository;
 
     private boolean localCookie = false; //true : 로컬  false : 쿠키
+    @Value("${aes.body}")
+    private  String aesKeyBody2;
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
         super(authenticationManager);
@@ -77,7 +81,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         LoginUser loginUser = (LoginUser) authResult.getPrincipal();
         String accessToken = JwtProcess.create(loginUser);
         String refreshToken = JwtProcess.refresh(loginUser);
-
         /**
          * 헤더로 설정 or 쿠키로 설정
          */
@@ -85,22 +88,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             response.addHeader(JwtVO.HEADER, accessToken);
             response.addHeader("REFRESH_TOKEN", refreshToken);
         } else {
-            //쿠키 시간은 동일하게 맞춤 accesstoken에 expired 타임이 있기 때문 ??...
-            ResponseCookie cookie = ResponseCookie.from("PA_T", accessToken.split(" ")[1].trim())
-                    .maxAge(7 * 24 * 60 * 60) //2주간 가지고 있기
-//                    .httpOnly(true)
-//                    .secure(true)
-                    .path("/")
-                    .build();
-            response.addHeader("Set-cookie", cookie.toString());
-
-            ResponseCookie refreshCookie = ResponseCookie.from("PR_T", refreshToken)
-                    .maxAge(7 * 24 * 60 * 60)  //2주간 가지고 있기
-//                    .httpOnly(true)
-//                    .secure(true)
-                    .path("/")
-                    .build();
-            response.addHeader("Set-cookie", refreshCookie.toString());
+            //쿠키 시간은 동일하게 맞춤 accesstoken에 expired 타임이 있기 때문 ??...;
+            response.addHeader("Set-cookie", CreateCookie(accessToken, "PA_T").toString());
+            response.addHeader("Set-cookie", CreateCookie(refreshToken, "PR_T").toString());
         }
 
         boolean dbInsert = false;
@@ -111,7 +101,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             member.refreshTokenUpdIns(refreshToken);
             memberRepository.save(member);
         }
-        CustomResponseUtil.success(response, loginRespDto);
+        CustomResponseUtil.success(response, loginRespDto,"로그인 성공");
 
     }
 }

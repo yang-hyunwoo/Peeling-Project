@@ -13,7 +13,7 @@ public class Aes256Util {
     private final String key = "7bMLmQkJ2oEwwae9usoOxnomqGRcTH8G";
     private final String iv = key.substring(0, 16); // 16byte
 
-    public String encrypt(String text){
+    public String encrypt(String key ,String text){
         try {
             Cipher cipher = Cipher.getInstance(alg);
             SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
@@ -29,7 +29,7 @@ public class Aes256Util {
 
     }
 
-    public String decrypt(String cipherText)  {
+    public String decrypt(String key ,String cipherText)  {
         try {
             Cipher cipher = Cipher.getInstance(alg);
             SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");

@@ -9,10 +9,10 @@ import org.springframework.http.HttpStatus;
 public class CustomResponseUtil {
 
 
-    public static void success(HttpServletResponse response , Object dto) {
+    public static void success(HttpServletResponse response , Object dto ,String msg) {
         try{
             ObjectMapper om = new ObjectMapper();
-            Response<String> responseDto = Response.successRead("로그인 성공");
+            Response<String> responseDto = Response.successRead(msg);
             String responseBody = om.writeValueAsString(responseDto);
             response.setContentType("application/json; uft-8");
             response.setStatus(200);
