@@ -6,11 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -31,15 +28,11 @@ import static peeling.project.basic.config.jwt.JwtProcess.CreateCookie;
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-
-
     private AuthenticationManager authenticationManager;
 
     private MemberRepository memberRepository;
 
     private boolean localCookie = false; //true : 로컬  false : 쿠키
-    @Value("${aes.body}")
-    private  String aesKeyBody2;
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
         super(authenticationManager);
@@ -64,14 +57,54 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             return authentication;
         } catch (Exception e) {
             // unsuccessfulAuthentication 호출
-            throw new InternalAuthenticationServiceException(e.getMessage());
+            throw new InternalAuthenticationServiceException(e.toString(),e);
+
+
         }
     }
 
     //로그인 실패
+
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        CustomResponseUtil.fail(response, "ID 및 비밀번호를 확인해 주세요.", HttpStatus.UNAUTHORIZED);
+        String message = unsuccessException(request,failed.getCause());
+        CustomResponseUtil.fail(response,message, HttpStatus.UNAUTHORIZED);
+    }
+
+    //request.getParameter("username") 조회할 거로 수정
+    public String unsuccessException(HttpServletRequest request, Throwable failed) throws IOException {
+        String message = "";
+
+        if (failed instanceof BadCredentialsException) {
+            //비밀번호가 일치하지 않을 때 던지는 예외
+            message = "ID 및 비밀번호를 확인해 주세요.";
+            ObjectMapper om = new ObjectMapper();
+            LoginReqDto loginReqDto = om.readValue(request.getInputStream(), LoginReqDto.class);
+            Member member = memberRepository.findByUsername(loginReqDto.getUsername()).orElseThrow(() -> new InternalAuthenticationServiceException("인증 실패"));
+            member.lgnFlrCntPlus(); //실패 횟수 증가
+            memberRepository.save(member);
+        } else if (failed instanceof InternalAuthenticationServiceException) {
+            //존재하지 않는 아이디일 때 던지는 예외
+            message = "ID 및 비밀번호를 확인해 주세요.";
+        } else if (failed instanceof LockedException) {
+            // 인증 거부 - 잠긴 계정
+            message = "비활성화된 계정입니다.";
+        } else if (failed instanceof AuthenticationCredentialsNotFoundException) {
+            // 인증 요구가 거부됐을 때 던지는 예외
+            message = "ID 및 비밀번호를 확인해 주세요.";
+        } else if (failed instanceof DisabledException) {
+            //인증 거부 - 계정 비활성화
+            message = "비활성화된 계정입니다.";
+        } else if (failed instanceof AccountExpiredException) {
+            //인증 거부 - 계정 유효기간 만료
+            message = "비활성화된 계정입니다.";
+        } else if (failed instanceof CredentialsExpiredException) {
+            //인증 거부 - 비밀번호 유효기간 만료
+            message = "비활성화된 계정입니다.";
+        } else {
+            message = "관리자에게 문의하세요.";
+        }
+        return message;
     }
 
     //return authentication 잘 작동하면 successfulAuthentication 해당 메서드 호출
@@ -84,6 +117,10 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         /**
          * 헤더로 설정 or 쿠키로 설정
          */
+        LoginResDto loginRespDto = new LoginResDto(loginUser.getMember());
+        Member member = memberRepository.findById(loginUser.getMember().getId()).orElseThrow(() -> new CustomApiException("유저를 찾을수 없습니다"));
+        member.lgnFlrCntInit();
+        memberRepository.save(member);//로그인 실패 횟수 초기화
         if(localCookie) {
             response.addHeader(JwtVO.HEADER, accessToken);
             response.addHeader("REFRESH_TOKEN", refreshToken);
@@ -95,9 +132,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         boolean dbInsert = false;
 
-        LoginResDto loginRespDto = new LoginResDto(loginUser.getMember());
-        Member member = memberRepository.findById(loginUser.getMember().getId()).orElseThrow(() -> new CustomApiException("유저를 찾을수 없습니다"));
-        if(dbInsert) {
+          if(dbInsert) {
             member.refreshTokenUpdIns(refreshToken);
             memberRepository.save(member);
         }

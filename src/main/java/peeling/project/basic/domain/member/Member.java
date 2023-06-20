@@ -48,6 +48,7 @@ public class Member {
     @Column(length = 4000)
     private String refreshToken;
 
+    private int lgnFlrCnt;
     @Builder
     public Member(Long id,
                 String username,
@@ -56,6 +57,7 @@ public class Member {
                 String fullname,
                 MemberEnum role,
                 String refreshToken,
+                int lgnFlrCnt,
                 LocalDateTime createdAt,
                 LocalDateTime updatedAt) {
         this.id = id;
@@ -65,12 +67,21 @@ public class Member {
         this.fullname = fullname;
         this.role = role;
         this.refreshToken = refreshToken;
+        this.lgnFlrCnt = lgnFlrCnt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     public void refreshTokenUpdIns(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public void lgnFlrCntPlus() {
+        this.lgnFlrCnt+= 1;
+    }
+
+    public void lgnFlrCntInit() {
+        this.lgnFlrCnt = 0;
     }
 
 }

@@ -34,6 +34,7 @@ public class JoinMemberReqDto {
                 .email(email)
                 .fullname(fullname)
                 .role(MemberEnum.USER)
+                .lgnFlrCnt(0)
                 .build();
     }
 

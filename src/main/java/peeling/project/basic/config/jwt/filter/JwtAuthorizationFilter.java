@@ -21,13 +21,14 @@ import peeling.project.basic.config.jwt.JwtVO;
 import peeling.project.basic.domain.member.Member;
 import peeling.project.basic.exception.CustomApiException;
 import peeling.project.basic.repository.MemberRepository;
+import peeling.project.basic.util.MultiReadHttpServletRequest;
+
 import java.io.IOException;
 
 import static peeling.project.basic.config.jwt.JwtProcess.CreateCookie;
 
 /*
  모든 주소에서 동작 (토큰 검증)
-
  */
 @Slf4j
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
@@ -35,7 +36,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     private final MemberRepository memberRepository;
 
     private boolean localCookie = false; //true : 로컬  false : 쿠키
-
 
     public JwtAuthorizationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
         super(authenticationManager);
@@ -49,7 +49,12 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         } else {
             cookieVerify(request, response);
         }
-        chain.doFilter(request, response);
+
+        /*inputStream은 한번만 가능 하기 때문에 실패 시 유저 정보를 가져올수 없어서
+          inputStream을 한번 하고 다시 요청 할 때 cache를 이용
+         */
+        MultiReadHttpServletRequest rereadableRequestWrapper = new MultiReadHttpServletRequest((HttpServletRequest)request);
+        chain.doFilter(rereadableRequestWrapper, response);
     }
 
     private void localVerify(HttpServletRequest request, HttpServletResponse response) {
