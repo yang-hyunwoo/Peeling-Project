@@ -10,13 +10,13 @@ import javax.crypto.spec.SecretKeySpec;
 public class Aes256Util {
 
     public static String alg = "AES/CBC/PKCS5Padding";
-    private final String key = "7bMLmQkJ2oEwwae9usoOxnomqGRcTH8G";
-    private final String iv = key.substring(0, 16); // 16byte
+
 
     public String encrypt(String key ,String text){
         try {
             Cipher cipher = Cipher.getInstance(alg);
             SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+            String iv = key.substring(0, 16); // 16byte
             IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParamSpec);
 
@@ -26,13 +26,13 @@ public class Aes256Util {
             e.printStackTrace();
             throw new CustomApiException("암호화 오류");
         }
-
     }
 
     public String decrypt(String key ,String cipherText)  {
         try {
             Cipher cipher = Cipher.getInstance(alg);
             SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+            String iv = key.substring(0, 16); // 16byte
             IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec);
 
@@ -43,5 +43,4 @@ public class Aes256Util {
             throw new CustomApiException("복호화 오류");
         }
     }
-
 }

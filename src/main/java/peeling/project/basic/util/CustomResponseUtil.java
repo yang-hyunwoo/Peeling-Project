@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 @Slf4j
 public class CustomResponseUtil {
 
-
     public static void success(HttpServletResponse response , Object dto ,String msg) {
         try{
             ObjectMapper om = new ObjectMapper();
@@ -19,7 +18,6 @@ public class CustomResponseUtil {
             response.getWriter().println(responseBody);
         }catch (Exception e){
             log.error("서버 파싱 에러");
-
         }
     }
 
@@ -33,11 +31,6 @@ public class CustomResponseUtil {
             response.getWriter().println(responseBody);
         }catch (Exception e){
             log.error("서버 파싱 에러");
-
         }
     }
-
-
-
-
 }

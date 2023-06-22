@@ -22,5 +22,4 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(403);
         response.getWriter().println(responseBody);
     }
-
 }

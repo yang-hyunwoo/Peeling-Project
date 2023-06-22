@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import peeling.project.basic.config.jwt.filter.JwtAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthorizationFilter;
 import peeling.project.basic.repository.MemberRepository;
+import peeling.project.basic.service.MemberService;
 import peeling.project.basic.util.CustomAccessDeniedHandler;
 import peeling.project.basic.util.CustomAuthenticationEntryPoint;
 import peeling.project.basic.util.CustomLogOutHandler;
@@ -24,6 +25,8 @@ public class SecurityConfig {
     private final CorsConfig corsConfig;
 
     private final MemberRepository memberRepository;
+
+    private final MemberService memberService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -44,7 +47,7 @@ public class SecurityConfig {
                 .logout(logout-> logout.logoutUrl("/api/logout").logoutSuccessHandler(new CustomLogOutHandler())
                         .deleteCookies("PA_T")
                         .deleteCookies("PR_T"))
-                .addFilter(new JwtAuthenticationFilter(authenticationManager,memberRepository))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager,memberService))
                 .addFilterBefore(new JwtAuthorizationFilter(authenticationManager, memberRepository), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
                 .exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(new CustomAccessDeniedHandler()))
@@ -68,5 +71,4 @@ public class SecurityConfig {
         return (web) -> web.ignoring().requestMatchers("/css/**", "/images/**", "/js/**");
 
     }
-
 }

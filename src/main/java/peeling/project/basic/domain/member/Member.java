@@ -49,17 +49,26 @@ public class Member {
     private String refreshToken;
 
     private int lgnFlrCnt;
+
+    private boolean isUsed;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime lastAccessDate;
+
     @Builder
     public Member(Long id,
-                String username,
-                String password,
-                String email,
-                String fullname,
-                MemberEnum role,
-                String refreshToken,
-                int lgnFlrCnt,
-                LocalDateTime createdAt,
-                LocalDateTime updatedAt) {
+                  String username,
+                  String password,
+                  String email,
+                  String fullname,
+                  MemberEnum role,
+                  String refreshToken,
+                  int lgnFlrCnt,
+                  boolean isUsed,
+                  LocalDateTime createdAt,
+                  LocalDateTime updatedAt,
+                  LocalDateTime lastAccessDate) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -68,8 +77,10 @@ public class Member {
         this.role = role;
         this.refreshToken = refreshToken;
         this.lgnFlrCnt = lgnFlrCnt;
+        this.isUsed = isUsed;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.lastAccessDate = lastAccessDate;
     }
 
     public void refreshTokenUpdIns(String refreshToken) {
@@ -84,4 +95,7 @@ public class Member {
         this.lgnFlrCnt = 0;
     }
 
+    public void usedChange() {
+        this.isUsed = !this.isUsed;
+    }
 }

@@ -11,6 +11,7 @@ import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.domain.constant.MemberEnum;
 import peeling.project.basic.domain.member.Member;
 import peeling.project.basic.property.AesProperty;
+import peeling.project.basic.property.JwtProperty;
 import peeling.project.basic.util.Aes256Util;
 
 import java.nio.charset.StandardCharsets;
@@ -22,11 +23,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtProcess {
 
-
     @Autowired
     static AesProperty aesProperty;
-
-
 
     //토큰 생성
     public static String create(LoginUser loginUser) {
@@ -35,11 +33,11 @@ public class JwtProcess {
         String role = aes256.encrypt(aesProperty.getAesBody(),loginUser.getMember().getRole().name());
         String jwtToken = JWT.create()
                 .withSubject("peel-project")
-                .withExpiresAt(new Date(System.currentTimeMillis() + JwtVO.EXPIRATION_TIME))
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperty.getExpirationTime()))
                 .withClaim("id", id)
                 .withClaim("role", role)
-                .sign(Algorithm.HMAC512(returnByte(JwtVO.SECRET)));
-        return "Bearer " + aes256.encrypt(aesProperty.getAesCreate(), jwtToken);
+                .sign(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey())));
+        return JwtProperty.getTokenPrefix() + aes256.encrypt(aesProperty.getAesCreate(), jwtToken);
     }
 
     //refresh 토큰 생성
@@ -49,17 +47,17 @@ public class JwtProcess {
         String uuid = aes256.encrypt(aesProperty.getAesBody(),UUID.randomUUID().toString());
         String jwtToken = JWT.create()
                 .withSubject("peel-project")
-                .withExpiresAt(new Date(System.currentTimeMillis() +JwtVO.EXPIRATION_TIME*2))
+                .withExpiresAt(new Date(System.currentTimeMillis() +JwtProperty.getExpirationTime()*2))
                 .withClaim("id", id)
                 .withClaim("refreshToken", uuid)
-                .sign(Algorithm.HMAC512(returnByte(JwtVO.SECRET)));
-        return "Bearer " +aes256.encrypt(aesProperty.getAesRefresh(), jwtToken);
+                .sign(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey())));
+        return JwtProperty.getTokenPrefix() +aes256.encrypt(aesProperty.getAesRefresh(), jwtToken);
     }
 
     //토큰 검증 (return 되는 LoginUser 객체를 강제로 시큐리티 세션에 직접 주입)
     public static LoginUser verify(String token)  {
         Aes256Util aes256 = new Aes256Util();
-        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtVO.SECRET))).build().verify(aes256.decrypt(aesProperty.getAesCreate(), token));
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey()))).build().verify(aes256.decrypt(aesProperty.getAesCreate(), token));
         Long id = Long.parseLong(aes256.decrypt(aesProperty.getAesBody(),decodedJWT.getClaim("id").asString()));
         String role = aes256.decrypt(aesProperty.getAesBody(),decodedJWT.getClaim("role").asString());
         Member member = Member.builder().id(id).role(MemberEnum.valueOf(role)).build();
@@ -70,13 +68,13 @@ public class JwtProcess {
     public static Long verifyRefresh(String token) {
         Aes256Util aes256 = new Aes256Util();
         String decrypt = aes256.decrypt(aesProperty.getAesRefresh(), token);
-        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtVO.SECRET))).build().verify(decrypt);
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey()))).build().verify(decrypt);
         return Long.parseLong(aes256.decrypt(aesProperty.getAesBody(), decodedJWT.getClaim("id").asString()));
     }
 
     public static boolean verifyExpired(String token) {
         Aes256Util aes256 = new Aes256Util();
-        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtVO.SECRET))).build().verify(aes256.decrypt(aesProperty.getAesRefresh(), token));
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey()))).build().verify(aes256.decrypt(aesProperty.getAesRefresh(), token));
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime refreshExpired = decodedJWT.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
@@ -84,7 +82,6 @@ public class JwtProcess {
             return true;
         }
         return false;
-
     }
 
     public static ResponseCookie CreateCookie(String accessToken , String cookieName) {
@@ -99,5 +96,4 @@ public class JwtProcess {
     public static byte[] returnByte(String secretKey) {
         return secretKey.getBytes(StandardCharsets.UTF_8);
     }
-
 }

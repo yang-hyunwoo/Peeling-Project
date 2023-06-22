@@ -28,8 +28,10 @@ spring:
       enabled: always
 
 jwt:
-  secret-key: peeling.project.secret_key
-  expiration-time: 1000 * 60 * 60 * 24 * 7;  #1주일
+  secret-key: d5U6B7vayxh6FlPGGdZEFEWLaPZj7TqbPrygmYF5XLQe9AcQu3BnVD5wjPD4WACm5uDJSKnETVnfn1hvi7MOVzsrAVJiaexPzEWItq4dXD9nozcP96rWHbqTHE8ynQsxTu8Y2IrQhNdbbCR7kpc2QPMvfF2tSNAR9CX54RNTh4B3QHoSC7JMCkGfS61NAgTzaU6LIdF80sGNGwqInHsIJD9V86AOmloXvcOHXFUiWzt6tH4SPdEQ27tJR69SPyIL
+#  expiration-time: 1000 * 60 * 60 * 24 * 7;  #1주일
+  expiration-time: 3000  #1주일
+  token-prefix: "Bearer "
   header: Authorization
 
 aes:

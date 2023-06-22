@@ -40,8 +40,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                     }
                 }
             }
-
-
         responseWrite(response,exception);
     }
 

@@ -5,7 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import peeling.project.basic.domain.member.Member;
-
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -32,14 +33,23 @@ public class LoginUser implements UserDetails {
         return member.getUsername();
     }
 
+    /**
+     * 휴면 계정 or 컬럼 생성(true , false) 해도 됨
+     * 현재 일자 기준
+     * @return
+     */
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return ChronoUnit.DAYS.between(member.getLastAccessDate().toLocalDate(),LocalDate.now()) <=365;
     }
 
+    /**
+     * 비밀번호 오류 5회 이상
+     * @return
+     */
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return member.getLgnFlrCnt() <=4;
     }
 
     @Override
@@ -47,8 +57,12 @@ public class LoginUser implements UserDetails {
         return true;
     }
 
+    /**
+     * 탈퇴여부
+     * @return
+     */
     @Override
     public boolean isEnabled() {
-        return true;
+        return member.isUsed();
     }
 }

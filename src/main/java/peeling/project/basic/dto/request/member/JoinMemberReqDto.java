@@ -35,7 +35,7 @@ public class JoinMemberReqDto {
                 .fullname(fullname)
                 .role(MemberEnum.USER)
                 .lgnFlrCnt(0)
+                .isUsed(true)
                 .build();
     }
-
 }
