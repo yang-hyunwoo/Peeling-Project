@@ -20,6 +20,7 @@ import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.config.jwt.JwtProcess;
 import peeling.project.basic.domain.member.Member;
 import peeling.project.basic.exception.CustomApiException;
+import peeling.project.basic.exception.error.ErrorCode;
 import peeling.project.basic.property.AesProperty;
 import peeling.project.basic.property.JwtProperty;
 import peeling.project.basic.repository.MemberRepository;
@@ -209,7 +210,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private void accessTokenGenerated(HttpServletResponse response, Long userId) {
-        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException("사용자가 없습니다."));
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException(ErrorCode.MEMBER_INVALIED.getMessage()));
         String accessToken = JwtProcess.create(new LoginUser(member));
         String token = accessToken.split(" ")[1].trim();
         if(localCookie) {
@@ -221,7 +222,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private void refreshTokenGenerated(HttpServletResponse response, Long userId ,boolean dbInsert) {
-        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException("사용자가 없습니다."));
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException(ErrorCode.MEMBER_INVALIED.getMessage()));
         String newRefreshToken = JwtProcess.refresh(new LoginUser(member));
         if(localCookie) {
             response.addHeader("REFRESH_TOKEN", newRefreshToken); //header

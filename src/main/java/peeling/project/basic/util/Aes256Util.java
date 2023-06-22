@@ -1,6 +1,7 @@
 package peeling.project.basic.util;
 
 import peeling.project.basic.exception.CustomApiException;
+import peeling.project.basic.exception.error.ErrorCode;
 
 import java.util.Base64;
 import javax.crypto.Cipher;
@@ -24,7 +25,7 @@ public class Aes256Util {
             return Base64.getEncoder().encodeToString(encrypted);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new CustomApiException("암호화 오류");
+            throw new CustomApiException(ErrorCode.ENCRYPTION_ERROR.getMessage());
         }
     }
 
@@ -40,7 +41,7 @@ public class Aes256Util {
             byte[] decrypted = cipher.doFinal(decodedBytes);
             return new String(decrypted, "UTF-8");
         } catch (Exception e){
-            throw new CustomApiException("복호화 오류");
+            throw new CustomApiException(ErrorCode.DECODE_ERROR.getMessage());
         }
     }
 }

@@ -15,6 +15,7 @@ import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.config.jwt.JwtProcess;
 import peeling.project.basic.dto.request.member.LoginReqDto;
 import peeling.project.basic.dto.response.member.LoginResDto;
+import peeling.project.basic.exception.error.ErrorCode;
 import peeling.project.basic.property.JwtProperty;
 import peeling.project.basic.service.MemberService;
 import peeling.project.basic.util.CustomResponseUtil;
@@ -47,7 +48,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             LoginReqDto loginReqDto = om.readValue(request.getInputStream(), LoginReqDto.class);
 
             //강제 로그인  loginReqDto.getUsername() 이게  loadUserByUsername()안의 파라미터로 작동한다.
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginReqDto.getUsername(), loginReqDto.getPassword());
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginReqDto.getEmail(), loginReqDto.getPassword());
 
             //JWT를 쓴다 하더라도 , 컨트롤러 진입을 하면 시큐리티의 권한체크 , 인증체크의 도움을 받을수 있게 세션을 만듬
             // 세션의 유효기간은 request하고 , response 하면 끝
@@ -72,29 +73,29 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         if (failed instanceof BadCredentialsException) {
             //비밀번호가 일치하지 않을 때 던지는 예외
-            message = "ID 및 비밀번호를 확인해 주세요.";
+            message = ErrorCode.DUPLICATED_EMAIL.getMessage();
             ObjectMapper om = new ObjectMapper();
-            memberService.memberLgnFailCnt(om.readValue(request.getInputStream(), LoginReqDto.class).getUsername());//실패 횟수 증가
+            memberService.memberLgnFailCnt(om.readValue(request.getInputStream(), LoginReqDto.class).getEmail());//실패 횟수 증가
         } else if (failed instanceof InternalAuthenticationServiceException) {
             //존재하지 않는 아이디일 때 던지는 예외
-            message = "ID 및 비밀번호를 확인해 주세요.";
+            message = ErrorCode.DUPLICATED_EMAIL.getMessage();
         } else if (failed instanceof LockedException) {
             // 인증 거부 - 잠긴 계정
-            message = "비밀번호 5회 오류로 인해 계정이 잠겼습니다.";
+            message = ErrorCode.PASSWORD_WRONG.getMessage();
         } else if (failed instanceof AuthenticationCredentialsNotFoundException) {
             // 인증 요구가 거부됐을 때 던지는 예외
-            message = "ID 및 비밀번호를 확인해 주세요.";
+            message = ErrorCode.MEMBER_ID_PW_INVALIED.getMessage();
         } else if (failed instanceof DisabledException) {
             //인증 거부 - 계정 비활성화
-            message = "비활성화된 계정입니다.";
+            message = ErrorCode.DISABLED_MEMBER.getMessage();
         } else if (failed instanceof AccountExpiredException) {
             //인증 거부 - 계정 유효기간 만료
-            message = "1년간 미접속으로 인해 계정 잠김.";
+            message = ErrorCode.DORMANT_ACCOUNT.getMessage();
         } else if (failed instanceof CredentialsExpiredException) {
             //인증 거부 - 비밀번호 유효기간 만료
-            message = "비활성화된 계정입니다.";
+            message = ErrorCode.DISABLED_MEMBER.getMessage();
         } else {
-            message = "관리자에게 문의하세요.";
+            message = ErrorCode.ANOTHER_ERROR.getMessage();
         }
         return message;
     }
