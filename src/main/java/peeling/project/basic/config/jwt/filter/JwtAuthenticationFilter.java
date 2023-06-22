@@ -60,46 +60,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         }
     }
 
-    //로그인 실패
-    @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        String message = unsuccessException(request,failed.getCause());
-        CustomResponseUtil.fail(response,message, HttpStatus.UNAUTHORIZED);
-    }
-
-    //request.getParameter("username") 조회할 거로 수정
-    public String unsuccessException(HttpServletRequest request, Throwable failed) throws IOException {
-        String message = "";
-
-        if (failed instanceof BadCredentialsException) {
-            //비밀번호가 일치하지 않을 때 던지는 예외
-            message = ErrorCode.DUPLICATED_EMAIL.getMessage();
-            ObjectMapper om = new ObjectMapper();
-            memberService.memberLgnFailCnt(om.readValue(request.getInputStream(), LoginReqDto.class).getEmail());//실패 횟수 증가
-        } else if (failed instanceof InternalAuthenticationServiceException) {
-            //존재하지 않는 아이디일 때 던지는 예외
-            message = ErrorCode.DUPLICATED_EMAIL.getMessage();
-        } else if (failed instanceof LockedException) {
-            // 인증 거부 - 잠긴 계정
-            message = ErrorCode.PASSWORD_WRONG.getMessage();
-        } else if (failed instanceof AuthenticationCredentialsNotFoundException) {
-            // 인증 요구가 거부됐을 때 던지는 예외
-            message = ErrorCode.MEMBER_ID_PW_INVALIED.getMessage();
-        } else if (failed instanceof DisabledException) {
-            //인증 거부 - 계정 비활성화
-            message = ErrorCode.DISABLED_MEMBER.getMessage();
-        } else if (failed instanceof AccountExpiredException) {
-            //인증 거부 - 계정 유효기간 만료
-            message = ErrorCode.DORMANT_ACCOUNT.getMessage();
-        } else if (failed instanceof CredentialsExpiredException) {
-            //인증 거부 - 비밀번호 유효기간 만료
-            message = ErrorCode.DISABLED_MEMBER.getMessage();
-        } else {
-            message = ErrorCode.ANOTHER_ERROR.getMessage();
-        }
-        return message;
-    }
-
     //return authentication 잘 작동하면 successfulAuthentication 해당 메서드 호출
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
@@ -130,4 +90,46 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         }
         CustomResponseUtil.success(response, loginRespDto,"로그인 성공");
     }
+
+    //로그인 실패
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+        String message = unsuccessException(request,failed.getCause());
+        CustomResponseUtil.fail(response,message, HttpStatus.UNAUTHORIZED);
+    }
+
+    //request.getParameter("username") 조회할 거로 수정
+    public String unsuccessException(HttpServletRequest request, Throwable failed) throws IOException {
+        String message = "";
+
+        if (failed instanceof BadCredentialsException) {
+            //비밀번호가 일치하지 않을 때 던지는 예외
+            message = ErrorCode.MEMBER_ID_PW_INVALIED.getMessage();
+            ObjectMapper om = new ObjectMapper();
+            memberService.memberLgnFailCnt(om.readValue(request.getInputStream(), LoginReqDto.class).getEmail());//실패 횟수 증가
+        } else if (failed instanceof InternalAuthenticationServiceException) {
+            //존재하지 않는 아이디일 때 던지는 예외
+            message = ErrorCode.DUPLICATED_EMAIL.getMessage();
+        } else if (failed instanceof LockedException) {
+            // 인증 거부 - 잠긴 계정
+            message = ErrorCode.PASSWORD_WRONG.getMessage();
+        } else if (failed instanceof AuthenticationCredentialsNotFoundException) {
+            // 인증 요구가 거부됐을 때 던지는 예외
+            message = ErrorCode.MEMBER_ID_PW_INVALIED.getMessage();
+        } else if (failed instanceof DisabledException) {
+            //인증 거부 - 계정 비활성화
+            message = ErrorCode.DISABLED_MEMBER.getMessage();
+        } else if (failed instanceof AccountExpiredException) {
+            //인증 거부 - 계정 유효기간 만료
+            message = ErrorCode.DORMANT_ACCOUNT.getMessage();
+        } else if (failed instanceof CredentialsExpiredException) {
+            //인증 거부 - 비밀번호 유효기간 만료
+            message = ErrorCode.DISABLED_MEMBER.getMessage();
+        } else {
+            message = ErrorCode.ANOTHER_ERROR.getMessage();
+        }
+        return message;
+    }
+
+
 }
