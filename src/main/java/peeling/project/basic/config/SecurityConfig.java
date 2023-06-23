@@ -12,7 +12,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthorizationFilter;
+import peeling.project.basic.oauth.OAuth2AuthenticationFailureHandler;
+import peeling.project.basic.oauth.OAuth2AuthenticationSuccessHandler;
+import peeling.project.basic.oauth.PrincipalOauth2UserService;
 import peeling.project.basic.repository.MemberRepository;
+import peeling.project.basic.service.MemberService;
 import peeling.project.basic.util.CustomAccessDeniedHandler;
 import peeling.project.basic.util.CustomAuthenticationEntryPoint;
 import peeling.project.basic.util.CustomLogOutHandler;
@@ -24,6 +28,14 @@ public class SecurityConfig {
     private final CorsConfig corsConfig;
 
     private final MemberRepository memberRepository;
+
+    private final MemberService memberService;
+
+    private final PrincipalOauth2UserService principalOauth2UserService;
+
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -40,11 +52,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfig.configurationSource()))
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //자바의 세션을 사용하지 않겠다.
                 .formLogin(formLogin -> formLogin.disable()) //시큐리티의 폼로그인을 사용하지 않겠다
+                .oauth2Login(oauth2Login -> oauth2Login.authorizationEndpoint(authorizationEndpoint-> authorizationEndpoint
+                        .baseUri("/oauth2/authorization"))
+                        .redirectionEndpoint(redirectionEndpoint-> redirectionEndpoint.baseUri("/login/oauth2/code/**"))
+                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig.userService(principalOauth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler))
                 .httpBasic(httpBasic -> httpBasic.disable()) //브라우저가 팝업창을 이용하여 사용자 인증을 진행하지 않겠다.
                 .logout(logout-> logout.logoutUrl("/api/logout").logoutSuccessHandler(new CustomLogOutHandler())
                         .deleteCookies("PA_T")
                         .deleteCookies("PR_T"))
-                .addFilter(new JwtAuthenticationFilter(authenticationManager,memberRepository))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager,memberService))
                 .addFilterBefore(new JwtAuthorizationFilter(authenticationManager, memberRepository), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
                 .exceptionHandling(exceptionHandling -> exceptionHandling.accessDeniedHandler(new CustomAccessDeniedHandler()))
@@ -68,5 +86,4 @@ public class SecurityConfig {
         return (web) -> web.ignoring().requestMatchers("/css/**", "/images/**", "/js/**");
 
     }
-
 }

@@ -9,6 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,9 +18,11 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.util.StringUtils;
 import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.config.jwt.JwtProcess;
-import peeling.project.basic.config.jwt.JwtVO;
 import peeling.project.basic.domain.member.Member;
 import peeling.project.basic.exception.CustomApiException;
+import peeling.project.basic.exception.error.ErrorCode;
+import peeling.project.basic.property.AesProperty;
+import peeling.project.basic.property.JwtProperty;
 import peeling.project.basic.repository.MemberRepository;
 import peeling.project.basic.util.MultiReadHttpServletRequest;
 
@@ -60,7 +63,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     private void localVerify(HttpServletRequest request, HttpServletResponse response) {
         if (isHeaderVerify(request)) {
             //토큰이 존재
-            String token = request.getHeader(JwtVO.HEADER).split(" ")[1].trim();
+            String token = request.getHeader(JwtProperty.getHeader()).split(" ")[1].trim();
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -131,7 +134,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             }
         }
     }
-
 
     private void cookieVerify(HttpServletRequest request, HttpServletResponse response) {
         if (StringUtils.hasText(isCookieVerify(request,"PA_T"))) {
@@ -208,19 +210,21 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private void accessTokenGenerated(HttpServletResponse response, Long userId) {
-        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException("사용자가 없습니다."));
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException(ErrorCode.MEMBER_INVALIED.getMessage()));
         String accessToken = JwtProcess.create(new LoginUser(member));
         String token = accessToken.split(" ")[1].trim();
         if(localCookie) {
-            response.addHeader(JwtVO.HEADER, token); //header
+            response.addHeader(JwtProperty.getHeader(), token); //header
         } else {
             response.addHeader("Set-cookie", CreateCookie(accessToken, "PA_T").toString());
         }
+        System.out.println("11111111111111111111");
+        System.out.println(CreateCookie(accessToken, "PA_T").toString());
         setAuthentication(JwtProcess.verify(token));
     }
 
     private void refreshTokenGenerated(HttpServletResponse response, Long userId ,boolean dbInsert) {
-        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException("사용자가 없습니다."));
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new CustomApiException(ErrorCode.MEMBER_INVALIED.getMessage()));
         String newRefreshToken = JwtProcess.refresh(new LoginUser(member));
         if(localCookie) {
             response.addHeader("REFRESH_TOKEN", newRefreshToken); //header
@@ -233,22 +237,19 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         }
     }
 
-
-
     private static void setAuthentication(LoginUser loginUser) {
         Authentication authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private boolean isHeaderVerify(HttpServletRequest request) {
-        String header = request.getHeader(JwtVO.HEADER);
+        String header = request.getHeader(JwtProperty.getHeader());
 
-        if (header == null || !header.startsWith("Bearer ")) {
+        if (header == null || !header.startsWith(JwtProperty.getTokenPrefix())) {
             return false;
         } else {
             return true;
         }
-
     }
 
     private String isCookieVerify(HttpServletRequest request, String cookieName) {
@@ -263,5 +264,4 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         }
         return cookieValue;
     }
-
 }

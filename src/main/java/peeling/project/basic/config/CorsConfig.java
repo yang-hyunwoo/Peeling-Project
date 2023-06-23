@@ -10,7 +10,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class CorsConfig {
     @Bean
     public CorsConfigurationSource configurationSource() {
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.addAllowedHeader("*");
@@ -20,6 +19,5 @@ public class CorsConfig {
         source.registerCorsConfiguration("/**", corsConfiguration);
 
         return source;
-
     }
 }

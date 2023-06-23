@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import peeling.project.basic.exception.error.ErrorCode;
 
 import java.io.IOException;
 
@@ -21,7 +22,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         //인증이 필요 없는 url 에서는 작동 하지 않는다.
         String exception = (String)request.getAttribute("exception");
         if(exception==null) {
-            exception = "로그인을 진행해 주세요.";
+            exception = ErrorCode.FIRST_LOGIN_ING.getMessage();
         }
             if (localCookie) {
 
@@ -40,8 +41,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                     }
                 }
             }
-
-
         responseWrite(response,exception);
     }
 

@@ -11,8 +11,8 @@ public class Response<T> {
     private String resultCode;
 
     private int httpCode;
-    private  T data;
 
+    private  T data;
 
     public static Response<String> error(String resultCode, int httpCode, String data) {
         return new Response<>(resultCode, httpCode, data);
@@ -33,5 +33,4 @@ public class Response<T> {
                 ", result=" + data +
                 '}';
     }
-
 }
