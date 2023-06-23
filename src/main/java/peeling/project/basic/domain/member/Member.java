@@ -41,6 +41,10 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    private String provider;
+
+    private String providerId;
+
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
@@ -65,6 +69,8 @@ public class Member {
                   MemberEnum role,
                   String refreshToken,
                   int lgnFlrCnt,
+                  String provider,
+                  String providerId,
                   boolean isUsed,
                   LocalDateTime createdAt,
                   LocalDateTime updatedAt,
@@ -77,6 +83,8 @@ public class Member {
         this.role = role;
         this.refreshToken = refreshToken;
         this.lgnFlrCnt = lgnFlrCnt;
+        this.provider = provider;
+        this.providerId = providerId;
         this.isUsed = isUsed;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;

@@ -218,6 +218,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         } else {
             response.addHeader("Set-cookie", CreateCookie(accessToken, "PA_T").toString());
         }
+        System.out.println("11111111111111111111");
+        System.out.println(CreateCookie(accessToken, "PA_T").toString());
         setAuthentication(JwtProcess.verify(token));
     }
 

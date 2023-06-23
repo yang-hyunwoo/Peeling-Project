@@ -12,6 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthorizationFilter;
+import peeling.project.basic.oauth.OAuth2AuthenticationSuccessHandler;
+import peeling.project.basic.oauth.PrincipalOauth2UserService;
 import peeling.project.basic.repository.MemberRepository;
 import peeling.project.basic.service.MemberService;
 import peeling.project.basic.util.CustomAccessDeniedHandler;
@@ -28,6 +30,10 @@ public class SecurityConfig {
 
     private final MemberService memberService;
 
+    private final PrincipalOauth2UserService principalOauth2UserService;
+
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -43,6 +49,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfig.configurationSource()))
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //자바의 세션을 사용하지 않겠다.
                 .formLogin(formLogin -> formLogin.disable()) //시큐리티의 폼로그인을 사용하지 않겠다
+                .oauth2Login(oauth2Login -> oauth2Login.authorizationEndpoint(authorizationEndpoint-> authorizationEndpoint
+                        .baseUri("/oauth2/authorization"))
+                        .redirectionEndpoint(redirectionEndpoint-> redirectionEndpoint.baseUri("/login/oauth2/code/**"))
+                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig.userService(principalOauth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler))
                 .httpBasic(httpBasic -> httpBasic.disable()) //브라우저가 팝업창을 이용하여 사용자 인증을 진행하지 않겠다.
                 .logout(logout-> logout.logoutUrl("/api/logout").logoutSuccessHandler(new CustomLogOutHandler())
                         .deleteCookies("PA_T")

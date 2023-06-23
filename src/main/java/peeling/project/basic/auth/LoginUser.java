@@ -4,23 +4,42 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import peeling.project.basic.domain.member.Member;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
-@RequiredArgsConstructor
+
 @Getter
-public class LoginUser implements UserDetails {
+public class LoginUser implements UserDetails , OAuth2User {
 
     private final Member member;
+    private Map<String , Object> attributes;
+
+    //일반 로그인
+    public LoginUser(Member member) {
+        this.member = member;
+    }
+
+    //OAuth 로그인
+    public LoginUser(Member member, Map<String, Object> attributes) {
+        this.member = member;
+        this.attributes = attributes;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(() -> "ROLE_" + member.getRole());
         return authorities;
+    }
+
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes;
     }
 
     @Override
@@ -64,5 +83,10 @@ public class LoginUser implements UserDetails {
     @Override
     public boolean isEnabled() {
         return member.isUsed();
+    }
+
+    @Override
+    public String getName() {
+        return null;
     }
 }
