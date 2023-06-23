@@ -7,23 +7,18 @@ server:
 
 spring:
   datasource:
-    username: sa
-#    url: jdbc:h2:mem:test;MODE=PostgreSQL;
-#    driver-class-name: org.h2.Driver
-#    username: sa
-#    password:
-<<<<<<< HEAD
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/assignment
-    username: postgres
-    password: dkahffk11
-
-=======
-    url: jdbc:h2:tcp://localhost/~/test
+    url: jdbc:h2:mem:test;MODE=PostgreSQL;
+    driver-class-name: org.h2.Driver
     username: sa
     password:
-    driver-class-name: org.h2.Driver
->>>>>>> a43f888ec6cd6d6a48fc440602cf930aaf2c8544
+#    driver-class-name: org.postgresql.Driver
+#    url: jdbc:postgresql://localhost:5432/assignment
+#    username: postgres
+#    password: dkahffk11
+#    url: jdbc:h2:tcp://localhost/~/test
+#    username: sa
+#    password:
+#    driver-class-name: org.h2.Driver
   h2:
     console:
       enabled: true
@@ -79,4 +74,11 @@ aes:
   create: Kd9tBIIgDPrrADk0OCy6Gg68M2eOmkJv
   refresh: hCe1RdyYohgZS3rmf5aztm4kOH7tn5Dx
 
+#logging:
+#  level:
+#    org.hibernate.orm.jdbc.bind: trace
 
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true

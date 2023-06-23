@@ -38,9 +38,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-
-        return UriComponentsBuilder.fromUriString("http://localhost:4000")
-                .build().toUriString();
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        if(loginUser.getMember().getProvider().equals("naver")) {
+            return UriComponentsBuilder.fromUriString("http://localhost:4000/NaverLoginCallback")
+                    .build().toUriString();
+        } else {
+            return UriComponentsBuilder.fromUriString("http://localhost:4000")
+                    .build().toUriString();
+        }
     }
 
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {

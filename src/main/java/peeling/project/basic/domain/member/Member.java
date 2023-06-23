@@ -21,14 +21,13 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true , nullable = false , length = 20)
+    @Column(nullable = false , length = 20)
+    private String email;
+    @Column(nullable = false , length = 20)
     private String username;
 
     @Column(nullable = false , length = 60) // 패스워드 인코딩(BCrypt)
     private String password;
-
-    @Column(nullable = false , length = 20)
-    private String email;
 
     @Column(nullable = false , length = 20)
     private String fullname;
