@@ -25,7 +25,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         String targetUrl = determineTargetUrl(request, response, authentication);
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-       System.out.println("111111111111111111111111111111111");
+
         String accessToken = JwtProcess.create(loginUser);
         String refreshToken = JwtProcess.refresh(loginUser);
 

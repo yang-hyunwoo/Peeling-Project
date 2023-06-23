@@ -12,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthenticationFilter;
 import peeling.project.basic.config.jwt.filter.JwtAuthorizationFilter;
+import peeling.project.basic.oauth.OAuth2AuthenticationFailureHandler;
 import peeling.project.basic.oauth.OAuth2AuthenticationSuccessHandler;
 import peeling.project.basic.oauth.PrincipalOauth2UserService;
 import peeling.project.basic.repository.MemberRepository;
@@ -34,6 +35,8 @@ public class SecurityConfig {
 
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -53,7 +56,8 @@ public class SecurityConfig {
                         .baseUri("/oauth2/authorization"))
                         .redirectionEndpoint(redirectionEndpoint-> redirectionEndpoint.baseUri("/login/oauth2/code/**"))
                         .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig.userService(principalOauth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler))
                 .httpBasic(httpBasic -> httpBasic.disable()) //브라우저가 팝업창을 이용하여 사용자 인증을 진행하지 않겠다.
                 .logout(logout-> logout.logoutUrl("/api/logout").logoutSuccessHandler(new CustomLogOutHandler())
                         .deleteCookies("PA_T")
