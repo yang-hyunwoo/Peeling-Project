@@ -2,23 +2,27 @@ package peeling.project.basic.oauth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.config.jwt.JwtProcess;
+import peeling.project.basic.property.AesProperty;
+import peeling.project.basic.util.Aes256Util;
 
 import java.io.IOException;
 
 import static peeling.project.basic.config.jwt.JwtProcess.CreateCookie;
+import static peeling.project.basic.config.jwt.JwtProcess.CreateCookieJwt;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 
-
+    @Autowired
+    static AesProperty aesProperty;
 
     //JwtAuthenticationFilter와 동일 함함
    @Override
@@ -29,9 +33,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String accessToken = JwtProcess.create(loginUser);
         String refreshToken = JwtProcess.refresh(loginUser);
 
-        response.addHeader("Set-cookie", CreateCookie(accessToken, "PA_T").toString());
-        response.addHeader("Set-cookie", CreateCookie(refreshToken, "PR_T").toString());
+       Aes256Util aes256 = new Aes256Util();
+       String encrypt = aes256.encrypt(aesProperty.getAesBody(), "true");
 
+        response.addHeader("Set-cookie", CreateCookieJwt(accessToken, "PA_T").toString());
+        response.addHeader("Set-cookie", CreateCookieJwt(refreshToken, "PR_T").toString());
+       response.addHeader("Set-cookie", CreateCookie(encrypt, "PA_AUT").toString());
 
         clearAuthenticationAttributes(request, response);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

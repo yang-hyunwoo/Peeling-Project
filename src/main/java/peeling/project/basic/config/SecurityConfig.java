@@ -61,7 +61,8 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable()) //브라우저가 팝업창을 이용하여 사용자 인증을 진행하지 않겠다.
                 .logout(logout-> logout.logoutUrl("/api/logout").logoutSuccessHandler(new CustomLogOutHandler())
                         .deleteCookies("PA_T")
-                        .deleteCookies("PR_T"))
+                        .deleteCookies("PR_T")
+                        .deleteCookies("PA_AUT"))
                 .addFilter(new JwtAuthenticationFilter(authenticationManager,memberService))
                 .addFilterBefore(new JwtAuthorizationFilter(authenticationManager, memberRepository), UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))

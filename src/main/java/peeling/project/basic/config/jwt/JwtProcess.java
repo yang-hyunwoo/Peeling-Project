@@ -17,6 +17,7 @@ import peeling.project.basic.util.Aes256Util;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
 
@@ -78,13 +79,16 @@ public class JwtProcess {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime refreshExpired = decodedJWT.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 
-        if(now.compareTo(refreshExpired) <=1) {
+        //리프래시 토큰 만료일이 하루 남았을 경우 재생성하기 위함
+        if(ChronoUnit.DAYS.between(now, refreshExpired) >=13 && ChronoUnit.DAYS.between(now, refreshExpired) <=14) {
             return true;
         }
         return false;
     }
 
-    public static ResponseCookie CreateCookie(String accessToken , String cookieName) {
+
+
+    public static ResponseCookie CreateCookieJwt(String accessToken , String cookieName) {
         return ResponseCookie.from(cookieName, accessToken.split(" ")[1].trim())
                 .maxAge(7 * 24 * 60 * 60)
 //                    .httpOnly(true)
@@ -92,6 +96,16 @@ public class JwtProcess {
                 .path("/")
                 .build();
     }
+
+    public static ResponseCookie CreateCookie(String cookieValue , String cookieName) {
+        return ResponseCookie.from(cookieName, cookieValue)
+                .maxAge(7 * 24 * 60 * 60)
+//                    .httpOnly(true)
+//                    .secure(true)
+                .path("/")
+                .build();
+    }
+
 
     public static byte[] returnByte(String secretKey) {
         return secretKey.getBytes(StandardCharsets.UTF_8);

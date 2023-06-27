@@ -10,4 +10,6 @@ public class LoginReqDto {
     private String email;
 
     private String password;
+
+    private String chk;
 }

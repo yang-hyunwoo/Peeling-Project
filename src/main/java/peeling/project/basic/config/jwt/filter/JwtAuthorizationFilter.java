@@ -24,11 +24,16 @@ import peeling.project.basic.exception.error.ErrorCode;
 import peeling.project.basic.property.AesProperty;
 import peeling.project.basic.property.JwtProperty;
 import peeling.project.basic.repository.MemberRepository;
+import peeling.project.basic.util.Aes256Util;
 import peeling.project.basic.util.MultiReadHttpServletRequest;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
-import static peeling.project.basic.config.jwt.JwtProcess.CreateCookie;
+import static peeling.project.basic.config.jwt.JwtProcess.CreateCookieJwt;
 
 /*
  모든 주소에서 동작 (토큰 검증)
@@ -39,6 +44,9 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     private final MemberRepository memberRepository;
 
     private boolean localCookie = false; //true : 로컬  false : 쿠키
+
+    @Autowired
+    static AesProperty aesProperty;
 
     public JwtAuthorizationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository) {
         super(authenticationManager);
@@ -64,6 +72,10 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         if (isHeaderVerify(request)) {
             //토큰이 존재
             String token = request.getHeader(JwtProperty.getHeader()).split(" ")[1].trim();
+            Aes256Util aes256 = new Aes256Util();
+            String encrypt = aes256.decrypt(aesProperty.getAesBody(), request.getHeader("PA_AUT"));
+            //로그인 auto 체크
+            boolean autoChk = Boolean.parseBoolean(encrypt);
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -72,6 +84,11 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
             } catch (TokenExpiredException e) {
 
+                if(!autoChk) {
+                    if(autoChkVerifyExpired(e.getExpiredOn())) {
+                        request.setAttribute("exception", "access토큰 만료");
+                    }
+                }
                 //accessToken이 만료가 되었다면 client에서 refreshToken을 받아와
                 String refreshToken = request.getHeader("REFRESH_TOKEN").split(" ")[1].trim();
                 if(refreshToken==null) {
@@ -136,9 +153,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private void cookieVerify(HttpServletRequest request, HttpServletResponse response) {
-        if (StringUtils.hasText(isCookieVerify(request,"PA_T"))) {
+        if (StringUtils.hasText(isCookieVerify(request,"PA_T")) || StringUtils.hasText(isCookieVerify(request,"PA_AUT"))) {
             //토큰이 존재
             String token = isCookieVerify(request , "PA_T");
+            Aes256Util aes256 = new Aes256Util();
+            String encrypt = aes256.decrypt(aesProperty.getAesBody(), isCookieVerify(request, "PA_AUT"));
+            //로그인 auto 체크
+            boolean autoChk = Boolean.parseBoolean(encrypt);
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -146,9 +167,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 setAuthentication(loginUser);
             } catch (TokenExpiredException e) {
 
+                if(!autoChk) {
+                    if(autoChkVerifyExpired(e.getExpiredOn())) {
+                        request.setAttribute("exception", "access토큰 만료");
+                    }
+                }
                 //accessToken이 만료가 되었다면 client에서 refreshToken을 받아와
                 String refreshToken = isCookieVerify(request, "PR_T");
-
                 if(refreshToken==null) {
                     request.setAttribute("exception","리프래시 토큰이 없음");
 
@@ -216,10 +241,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         if(localCookie) {
             response.addHeader(JwtProperty.getHeader(), token); //header
         } else {
-            response.addHeader("Set-cookie", CreateCookie(accessToken, "PA_T").toString());
+            response.addHeader("Set-cookie", CreateCookieJwt(accessToken, "PA_T").toString());
         }
-        System.out.println("11111111111111111111");
-        System.out.println(CreateCookie(accessToken, "PA_T").toString());
         setAuthentication(JwtProcess.verify(token));
     }
 
@@ -229,7 +252,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         if(localCookie) {
             response.addHeader("REFRESH_TOKEN", newRefreshToken); //header
         } else {
-            response.addHeader("Set-cookie", CreateCookie(newRefreshToken, "PR_T").toString());
+            response.addHeader("Set-cookie", CreateCookieJwt(newRefreshToken, "PR_T").toString());
         }
         if(dbInsert) {
             member.refreshTokenUpdIns(newRefreshToken);
@@ -244,8 +267,9 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     private boolean isHeaderVerify(HttpServletRequest request) {
         String header = request.getHeader(JwtProperty.getHeader());
+        String autoChk = request.getHeader("PA_AUT");
 
-        if (header == null || !header.startsWith(JwtProperty.getTokenPrefix())) {
+        if ((header == null || !header.startsWith(JwtProperty.getTokenPrefix())) || (autoChk == null)) {
             return false;
         } else {
             return true;
@@ -263,5 +287,14 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             }
         }
         return cookieValue;
+    }
+
+    public static boolean autoChkVerifyExpired(Instant expireDate) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime refreshExpired = expireDate.atZone(ZoneId.systemDefault()).toLocalDateTime();
+        if(ChronoUnit.DAYS.between(refreshExpired, now) <=-1) {
+            return true;
+        }
+        return false;
     }
 }
