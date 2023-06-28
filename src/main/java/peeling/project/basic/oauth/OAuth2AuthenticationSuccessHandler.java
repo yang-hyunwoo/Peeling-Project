@@ -21,8 +21,7 @@ import static peeling.project.basic.config.jwt.JwtProcess.CreateCookieJwt;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 
-    @Autowired
-    static AesProperty aesProperty;
+
 
     //JwtAuthenticationFilter와 동일 함함
    @Override
@@ -34,7 +33,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String refreshToken = JwtProcess.refresh(loginUser);
 
        Aes256Util aes256 = new Aes256Util();
-       String encrypt = aes256.encrypt(aesProperty.getAesBody(), "true");
+       String encrypt = aes256.encrypt(AesProperty.getAesBody(), "true");
 
         response.addHeader("Set-cookie", CreateCookieJwt(accessToken, "PA_T").toString());
         response.addHeader("Set-cookie", CreateCookieJwt(refreshToken, "PR_T").toString());

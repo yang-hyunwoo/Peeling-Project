@@ -7,6 +7,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -47,18 +49,18 @@ public class SecurityConfig {
 
         AuthenticationManager authenticationManager = authenticationManager(http.getSharedObject(AuthenticationConfiguration.class));
 
-        return http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) //iframe을 허용하지 않음
-                .csrf(csrf -> csrf.disable()) //enalbed 일 경우 post맨이 작동하지 않음
+        return http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)) //iframe을 허용하지 않음 .disable() lamda
+                .csrf(AbstractHttpConfigurer::disable) //enalbed 일 경우 post맨이 작동하지 않음 .disable() lamda
                 .cors(cors -> cors.configurationSource(corsConfig.configurationSource()))
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //자바의 세션을 사용하지 않겠다.
-                .formLogin(formLogin -> formLogin.disable()) //시큐리티의 폼로그인을 사용하지 않겠다
+                .formLogin(AbstractHttpConfigurer::disable) //시큐리티의 폼로그인을 사용하지 않겠다 .disable() lamda
                 .oauth2Login(oauth2Login -> oauth2Login.authorizationEndpoint(authorizationEndpoint-> authorizationEndpoint
                         .baseUri("/oauth2/authorization"))
                         .redirectionEndpoint(redirectionEndpoint-> redirectionEndpoint.baseUri("/login/oauth2/code/**"))
                         .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig.userService(principalOauth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler))
-                .httpBasic(httpBasic -> httpBasic.disable()) //브라우저가 팝업창을 이용하여 사용자 인증을 진행하지 않겠다.
+                .httpBasic(AbstractHttpConfigurer::disable) //브라우저가 팝업창을 이용하여 사용자 인증을 진행하지 않겠다. .disable() lamda
                 .logout(logout-> logout.logoutUrl("/api/logout").logoutSuccessHandler(new CustomLogOutHandler())
                         .deleteCookies("PA_T")
                         .deleteCookies("PR_T")

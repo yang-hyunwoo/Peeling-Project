@@ -31,14 +31,13 @@ import static peeling.project.basic.config.jwt.JwtProcess.CreateCookieJwt;
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    private MemberService memberService;
+    private final MemberService memberService;
 
-    private boolean localCookie = false; //true : 로컬  false : 쿠키
+    private final boolean localCookie = false; //true : 로컬  false : 쿠키
 
-    @Autowired
-    static AesProperty aesProperty;
+
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberService memberService) {
         super(authenticationManager);
@@ -59,8 +58,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             //JWT를 쓴다 하더라도 , 컨트롤러 진입을 하면 시큐리티의 권한체크 , 인증체크의 도움을 받을수 있게 세션을 만듬
             // 세션의 유효기간은 request하고 , response 하면 끝
-            Authentication authentication = authenticationManager.authenticate(authenticationToken); //UserDetailsService의 loadUserByUsername
-            return authentication;
+            return authenticationManager.authenticate(authenticationToken);
         } catch (Exception e) {
             // unsuccessfulAuthentication 호출
             throw new InternalAuthenticationServiceException(e.toString(),e);
@@ -84,7 +82,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         LoginResDto loginRespDto = new LoginResDto(loginUser.getMember());
         memberService.memberLgnFailInit(loginUser.getMember().getId()); // 로그인 실패 횟수 초기화
         Aes256Util aes256 = new Aes256Util();
-        String encrypt = aes256.encrypt(aesProperty.getAesBody(), loginReqDto.getChk());
+        String encrypt = aes256.encrypt(AesProperty.getAesBody(), loginReqDto.getChk());
         if(localCookie) {
             response.addHeader(JwtProperty.getHeader(), accessToken);
             response.addHeader("REFRESH_TOKEN", refreshToken);
