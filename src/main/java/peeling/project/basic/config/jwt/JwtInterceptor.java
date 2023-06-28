@@ -12,6 +12,7 @@ public class JwtInterceptor  implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        log.info("request.getRequestURI()::"+request.getRequestURI());
         log.info("filter 후 interceptor 여기 부분에서 검증 해도 됨");
 
         return true;
