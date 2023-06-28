@@ -5,7 +5,6 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import peeling.project.basic.auth.LoginUser;
 import peeling.project.basic.domain.constant.MemberEnum;
@@ -75,9 +74,11 @@ public class JwtProcess {
                 .verify(aes256.decrypt(AesProperty.getAesRefresh(), token));
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime refreshExpired = decodedJWT.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-
         //리프래시 토큰 만료일이 하루 남았을 경우 재생성하기 위함
-        return ChronoUnit.DAYS.between(now, refreshExpired) >= 13 && ChronoUnit.DAYS.between(now, refreshExpired) <= 14;
+        if(ChronoUnit.DAYS.between(now, refreshExpired) <=1 && ChronoUnit.DAYS.between(now, refreshExpired) >=0) {
+            return true;
+        }
+        return false;
     }
 
 

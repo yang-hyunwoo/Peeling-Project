@@ -71,8 +71,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             String token = request.getHeader(JwtProperty.getHeader()).split(" ")[1].trim();
             Aes256Util aes256 = new Aes256Util();
             String encrypt = aes256.decrypt(AesProperty.getAesBody(), request.getHeader("PA_AUT"));
-            //로그인 auto 체크
-            boolean autoChk = Boolean.parseBoolean(encrypt);
+
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -81,11 +80,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
             } catch (TokenExpiredException e) {
 
-                if(!autoChk) {
+                //로그인 auto 체크
+                if(!Boolean.parseBoolean(encrypt)) {
                     if(autoChkVerifyExpired(e.getExpiredOn())) {
                         request.setAttribute("exception", "access토큰 만료");
                     }
                 }
+
                 //accessToken이 만료가 되었다면 client에서 refreshToken을 받아와
                 String refreshToken = request.getHeader("REFRESH_TOKEN").split(" ")[1].trim();
                 refreshTokenNullChk(request, response, refreshToken);
@@ -106,61 +107,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         }
     }
 
-    private void refreshTokenNullChk(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
-        if(refreshToken==null) {
-            request.setAttribute("exception","리프래시 토큰이 없음");
-
-        } else {
-            try {
-                log.info("사용자 토큰 만료 -> 리프래시 토큰 인증 후 토큰 재 생성");
-                //refresh 토큰이 만료가 되지 않았을 경우
-
-                Long loginId = JwtProcess.verifyRefresh(refreshToken);
-                //새 accessToken 생성
-                accessTokenGenerated(response,  loginId);
-
-                // 만료일이 하루 남았을 경우 refreshToken 재생성 마지막 파라미터 true : dbInsert false: dbInsert X
-
-                if(JwtProcess.verifyExpired(refreshToken)) {
-                    refreshTokenGenerated(response,  loginId , false);
-                }
-
-            } catch (TokenExpiredException e2) {
-                //refresh 토큰이 만료가 되었다면 refresh 토큰 재 생성 및 login 안되게 처리
-                //리프래시 토큰 재 생성
-//                        refreshTokenGenerated(response, refreshToken , true);
-
-                // 로그아웃 시키기
-                request.setAttribute("exception", "refresh토큰 만료");
-
-            } catch (JWTDecodeException e2) {
-
-                //doesn't have a valid JSON format
-                //JwtDecode 시 exception
-                e2.printStackTrace();
-                request.setAttribute("exception", "decode 안되는 토큰");
-
-            } catch (SignatureVerificationException e2) {
-                e2.printStackTrace();
-                request.setAttribute("exception", "알고리즘 관련 오류");
-
-            }catch (CustomApiException e3) {
-                e3.printStackTrace();
-                request.setAttribute("exception",e3.getMessage());
-            }
-            //refresh token db 저장 및 jwt 분해 해서 refresh 토큰 조회 후 있으면 access 다시 리턴
-
-        }
-    }
-
     private void cookieVerify(HttpServletRequest request, HttpServletResponse response) {
-        if (StringUtils.hasText(isCookieVerify(request,"PA_T")) || StringUtils.hasText(isCookieVerify(request,"PA_AUT"))) {
+        if (StringUtils.hasText(isCookieVerify(request,"PA_T")) && StringUtils.hasText(isCookieVerify(request,"PA_AUT"))) {
             //토큰이 존재
             String token = isCookieVerify(request , "PA_T");
             Aes256Util aes256 = new Aes256Util();
             String encrypt = aes256.decrypt(AesProperty.getAesBody(), isCookieVerify(request, "PA_AUT"));
             //로그인 auto 체크
-            boolean autoChk = Boolean.parseBoolean(encrypt);
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -168,7 +121,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 setAuthentication(loginUser);
             } catch (TokenExpiredException e) {
 
-                if(!autoChk) {
+                if(!Boolean.parseBoolean(encrypt)) {
                     if(autoChkVerifyExpired(e.getExpiredOn())) {
                         request.setAttribute("exception", "access토큰 만료");
                     }
@@ -248,5 +201,52 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime refreshExpired = expireDate.atZone(ZoneId.systemDefault()).toLocalDateTime();
         return ChronoUnit.DAYS.between(refreshExpired, now) <= -1;
+    }
+
+    private void refreshTokenNullChk(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
+        if(refreshToken==null) {
+            request.setAttribute("exception","리프래시 토큰이 없음");
+
+        } else {
+            try {
+                log.info("사용자 토큰 만료 -> 리프래시 토큰 인증 후 토큰 재 생성");
+                //refresh 토큰이 만료가 되지 않았을 경우
+
+                Long loginId = JwtProcess.verifyRefresh(refreshToken);
+                //새 accessToken 생성
+                accessTokenGenerated(response,  loginId);
+
+                // 만료일이 하루 남았을 경우 refreshToken 재생성 마지막 파라미터 true : dbInsert false: dbInsert X
+
+                if(JwtProcess.verifyExpired(refreshToken)) {
+                    refreshTokenGenerated(response,  loginId , false);
+                }
+
+            } catch (TokenExpiredException e2) {
+                //refresh 토큰이 만료가 되었다면 refresh 토큰 재 생성 및 login 안되게 처리
+                //리프래시 토큰 재 생성
+//                        refreshTokenGenerated(response, refreshToken , true);
+
+                // 로그아웃 시키기
+                request.setAttribute("exception", "refresh토큰 만료");
+
+            } catch (JWTDecodeException e2) {
+
+                //doesn't have a valid JSON format
+                //JwtDecode 시 exception
+                e2.printStackTrace();
+                request.setAttribute("exception", "decode 안되는 토큰");
+
+            } catch (SignatureVerificationException e2) {
+                e2.printStackTrace();
+                request.setAttribute("exception", "알고리즘 관련 오류");
+
+            }catch (CustomApiException e3) {
+                e3.printStackTrace();
+                request.setAttribute("exception",e3.getMessage());
+            }
+            //refresh token db 저장 및 jwt 분해 해서 refresh 토큰 조회 후 있으면 access 다시 리턴
+
+        }
     }
 }
