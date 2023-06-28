@@ -153,7 +153,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     }
 
     private void cookieVerify(HttpServletRequest request, HttpServletResponse response) {
-        if (StringUtils.hasText(isCookieVerify(request,"PA_T")) || StringUtils.hasText(isCookieVerify(request,"PA_AUT"))) {
+        if (StringUtils.hasText(isCookieVerify(request,"PA_T")) && StringUtils.hasText(isCookieVerify(request,"PA_AUT"))) {
             //토큰이 존재
             String token = isCookieVerify(request , "PA_T");
             Aes256Util aes256 = new Aes256Util();
