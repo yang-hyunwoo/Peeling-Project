@@ -74,8 +74,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             String token = request.getHeader(JwtProperty.getHeader()).split(" ")[1].trim();
             Aes256Util aes256 = new Aes256Util();
             String encrypt = aes256.decrypt(aesProperty.getAesBody(), request.getHeader("PA_AUT"));
-            //로그인 auto 체크
-            boolean autoChk = Boolean.parseBoolean(encrypt);
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -84,11 +82,13 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
             } catch (TokenExpiredException e) {
 
-                if(!autoChk) {
+                //로그인 auto 체크
+                if(!Boolean.parseBoolean(encrypt)) {
                     if(autoChkVerifyExpired(e.getExpiredOn())) {
                         request.setAttribute("exception", "access토큰 만료");
                     }
                 }
+
                 //accessToken이 만료가 되었다면 client에서 refreshToken을 받아와
                 String refreshToken = request.getHeader("REFRESH_TOKEN").split(" ")[1].trim();
                 if(refreshToken==null) {
@@ -159,7 +159,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             Aes256Util aes256 = new Aes256Util();
             String encrypt = aes256.decrypt(aesProperty.getAesBody(), isCookieVerify(request, "PA_AUT"));
             //로그인 auto 체크
-            boolean autoChk = Boolean.parseBoolean(encrypt);
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -167,7 +166,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 setAuthentication(loginUser);
             } catch (TokenExpiredException e) {
 
-                if(!autoChk) {
+                if(!Boolean.parseBoolean(encrypt)) {
                     if(autoChkVerifyExpired(e.getExpiredOn())) {
                         request.setAttribute("exception", "access토큰 만료");
                     }

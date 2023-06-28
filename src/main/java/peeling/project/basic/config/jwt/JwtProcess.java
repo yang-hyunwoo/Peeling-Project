@@ -78,9 +78,8 @@ public class JwtProcess {
                 .verify(aes256.decrypt(aesProperty.getAesRefresh(), token));
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime refreshExpired = decodedJWT.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-
         //리프래시 토큰 만료일이 하루 남았을 경우 재생성하기 위함
-        if(ChronoUnit.DAYS.between(now, refreshExpired) >=13 && ChronoUnit.DAYS.between(now, refreshExpired) <=14) {
+        if(ChronoUnit.DAYS.between(now, refreshExpired) <=1 && ChronoUnit.DAYS.between(now, refreshExpired) >=0) {
             return true;
         }
         return false;
