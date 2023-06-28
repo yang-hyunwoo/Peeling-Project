@@ -7,7 +7,7 @@ build/
 
 ### querydsl ###
 /src/main/generated/
-.yml
+*.yml
 
 ### STS ###
 .apt_generated
