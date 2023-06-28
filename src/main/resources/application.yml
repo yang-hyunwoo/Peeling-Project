@@ -1,0 +1,84 @@
+server:
+  port: 8081
+  servlet:
+    encoding:
+      charset: utf-8
+      force: true
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:test;MODE=PostgreSQL;
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  #    driver-class-name: org.postgresql.Driver
+  #    url: jdbc:postgresql://localhost:5432/assignment
+  #    username: postgres
+  #    password: dkahffk11
+  #    url: jdbc:h2:tcp://localhost/~/test
+  #    username: sa
+  #    password:
+  #    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        format_sql: true
+    show-sql: true
+  output:
+    ansi:
+      enabled: always
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 125146072075-hmpc52dfkf94cnmrujclhan8kf559k9k.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+
+          naver:
+            clientId: sIraCa50rDEDL4YWQJUC
+            client-secret: QNWQyoFTq9
+            scope:
+              - name
+              - email
+            client-name: Naver
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:8081/login/oauth2/code/naver
+
+        provider:
+          naver:
+            authorization-uri: https://nid.naver.com/oauth2.0/authorize
+            token-uri: https://nid.naver.com/oauth2.0/token
+            user-info-uri: https://openapi.naver.com/v1/nid/me
+            user-name-attribute: response #회원정보를 json으로 받는데 response 라는 키 값으로 네이버가 리턴해줌
+
+jwt:
+  secret-key: d5U6B7vayxh6FlPGGdZEFEWLaPZj7TqbPrygmYF5XLQe9AcQu3BnVD5wjPD4WACm5uDJSKnETVnfn1hvi7MOVzsrAVJiaexPzEWItq4dXD9nozcP96rWHbqTHE8ynQsxTu8Y2IrQhNdbbCR7kpc2QPMvfF2tSNAR9CX54RNTh4B3QHoSC7JMCkGfS61NAgTzaU6LIdF80sGNGwqInHsIJD9V86AOmloXvcOHXFUiWzt6tH4SPdEQ27tJR69SPyIL
+  #  expiration-time: 1000 * 60 * 60 * 24 * 7;  #1주일
+  expiration-time: 30000  #1주일
+  token-prefix: "Bearer "
+  header: Authorization
+
+aes:
+  body: 7bMLmQkJ2oEwwae9usoOxnomqGRcTH8G
+  create: Kd9tBIIgDPrrADk0OCy6Gg68M2eOmkJv
+  refresh: hCe1RdyYohgZS3rmf5aztm4kOH7tn5Dx
+
+#logging:
+#  level:
+#    org.hibernate.orm.jdbc.bind: trace
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
