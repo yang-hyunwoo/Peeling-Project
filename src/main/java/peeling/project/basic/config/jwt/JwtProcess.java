@@ -23,7 +23,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtProcess {
 
-
     //토큰 생성
     public static String create(LoginUser loginUser) {
         Aes256Util aes256 = new Aes256Util();
@@ -75,13 +74,8 @@ public class JwtProcess {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime refreshExpired = decodedJWT.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         //리프래시 토큰 만료일이 하루 남았을 경우 재생성하기 위함
-        if(ChronoUnit.DAYS.between(now, refreshExpired) <=1 && ChronoUnit.DAYS.between(now, refreshExpired) >=0) {
-            return true;
-        }
-        return false;
+        return ChronoUnit.DAYS.between(now, refreshExpired) <= 1 && ChronoUnit.DAYS.between(now, refreshExpired) >= 0;
     }
-
-
 
     public static ResponseCookie CreateCookieJwt(String accessToken , String cookieName) {
         return ResponseCookie.from(cookieName, accessToken.split(" ")[1].trim())
@@ -100,7 +94,6 @@ public class JwtProcess {
                 .path("/")
                 .build();
     }
-
 
     public static byte[] returnByte(String secretKey) {
         return secretKey.getBytes(StandardCharsets.UTF_8);

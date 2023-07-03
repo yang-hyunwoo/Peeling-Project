@@ -5,9 +5,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import peeling.project.basic.domain.constant.MemberEnum;
 import peeling.project.basic.domain.member.Member;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,15 +29,18 @@ public class JoinMemberReqDto {
     @Pattern(regexp = "^[a-zA-Z가-힣]{1,20}$" , message = "영문/한글 1~20자 이내로 작성해 주세요.")
     private String fullname;
 
-    public Member toEntity(BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public Member toEntity(PasswordEncoder passwordEncoder) {
         return Member.builder()
                 .username(username)
-                .password(bCryptPasswordEncoder.encode(password))
+                .password(passwordEncoder.encode(password))
                 .email(email)
                 .fullname(fullname)
                 .role(MemberEnum.USER)
                 .lgnFlrCnt(0)
                 .isUsed(true)
+                .pwChgDate(LocalDateTime.now())
                 .build();
     }
+
+
 }

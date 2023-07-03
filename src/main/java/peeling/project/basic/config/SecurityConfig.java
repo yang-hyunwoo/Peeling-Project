@@ -26,17 +26,11 @@ import peeling.project.basic.util.CustomLogOutHandler;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final CorsConfig corsConfig;
-
     private final MemberRepository memberRepository;
-
     private final MemberService memberService;
-
     private final PrincipalOauth2UserService principalOauth2UserService;
-
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
@@ -87,6 +81,5 @@ public class SecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers("/css/**", "/images/**", "/js/**");
-
     }
 }

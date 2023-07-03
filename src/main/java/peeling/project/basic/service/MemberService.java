@@ -1,7 +1,7 @@
 package peeling.project.basic.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import peeling.project.basic.domain.member.Member;
@@ -16,7 +16,8 @@ import peeling.project.basic.repository.MemberRepository;
 @Transactional
 public class MemberService {
 
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    private final PasswordEncoder passwordEncoder;
 
     private final MemberRepository memberRepository;
 
@@ -28,20 +29,18 @@ public class MemberService {
         memberRepository.findByEmail(joinReqDto.getEmail()).ifPresent(user -> {
             throw new CustomApiException(ErrorCode.DUPLICATED_EMAIL.getMessage());
         });
-
         //2. 패스워드 인코딩
-        Member member = memberRepository.save(joinReqDto.toEntity(bCryptPasswordEncoder));
-
+//        Member member = memberRepository.save(joinReqDto.toEntity(bCryptPasswordEncoder));
+        Member member = memberRepository.save(joinReqDto.toEntity(passwordEncoder));
         //3. dto 응답
         return new JoinMemberResDto(member);
     }
 
-    public int memberLgnFailCnt(String email) {
+    public void memberLgnFailCnt(String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow(() -> new CustomApiException(ErrorCode.MEMBER_INVALIED.getMessage()));
         if(member.getLgnFlrCnt() <=4) {
             member.lgnFlrCntPlus();
         }
-        return member.getLgnFlrCnt();
     }
 
     public void memberLgnFailInit(Long id) {

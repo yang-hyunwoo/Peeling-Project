@@ -1,7 +1,6 @@
 package peeling.project.basic.auth;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -73,7 +72,7 @@ public class LoginUser implements UserDetails , OAuth2User {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return ChronoUnit.DAYS.between(member.getPwChgDate().toLocalDate(),LocalDate.now()) <=90;
     }
 
     /**

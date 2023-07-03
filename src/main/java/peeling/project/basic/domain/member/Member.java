@@ -26,7 +26,7 @@ public class Member {
     @Column(nullable = false , length = 20)
     private String username;
 
-    @Column(nullable = false , length = 60) // 패스워드 인코딩(BCrypt)
+    @Column(nullable = false , length = 500) // 패스워드 인코딩(BCrypt)
     private String password;
 
     @Column(nullable = false , length = 20)
@@ -59,6 +59,8 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime lastAccessDate;
 
+    private LocalDateTime pwChgDate;
+
     @Builder
     public Member(Long id,
                   String username,
@@ -73,7 +75,8 @@ public class Member {
                   boolean isUsed,
                   LocalDateTime createdAt,
                   LocalDateTime updatedAt,
-                  LocalDateTime lastAccessDate) {
+                  LocalDateTime lastAccessDate,
+                  LocalDateTime pwChgDate) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -88,6 +91,7 @@ public class Member {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.lastAccessDate = lastAccessDate;
+        this.pwChgDate = pwChgDate;
     }
 
     public void refreshTokenUpdIns(String refreshToken) {

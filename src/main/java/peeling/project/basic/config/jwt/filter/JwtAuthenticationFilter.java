@@ -6,8 +6,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -37,9 +35,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final boolean localCookie = false; //true : 로컬  false : 쿠키
 
-
-
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberService memberService) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, MemberService memberService ) {
         super(authenticationManager);
         setFilterProcessesUrl("/api/login");
         this.authenticationManager = authenticationManager;
@@ -75,7 +71,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         ObjectMapper om = new ObjectMapper();
         LoginReqDto loginReqDto = om.readValue(request.getInputStream(), LoginReqDto.class);
 
-
         /**
          * 헤더로 설정 or 쿠키로 설정
          */
@@ -106,42 +101,40 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     //로그인 실패
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        String message = unsuccessException(request,failed.getCause());
-        CustomResponseUtil.fail(response,message, HttpStatus.UNAUTHORIZED);
+        ErrorCode errorCode = unsuccessException(request, failed.getCause());
+        CustomResponseUtil.fail(response, errorCode.getMessage(), errorCode.getStatus());
     }
 
     //request.getParameter("username") 조회할 거로 수정
-    public String unsuccessException(HttpServletRequest request, Throwable failed) throws IOException {
-        String message = "";
+    public ErrorCode unsuccessException(HttpServletRequest request, Throwable failed) throws IOException {
+        ErrorCode errorCode;
 
         if (failed instanceof BadCredentialsException) {
             //비밀번호가 일치하지 않을 때 던지는 예외
-            message = ErrorCode.MEMBER_ID_PW_INVALIED.getMessage();
+            errorCode = ErrorCode.MEMBER_ID_PW_INVALIED;
             ObjectMapper om = new ObjectMapper();
             memberService.memberLgnFailCnt(om.readValue(request.getInputStream(), LoginReqDto.class).getEmail());//실패 횟수 증가
         } else if (failed instanceof InternalAuthenticationServiceException) {
             //존재하지 않는 아이디일 때 던지는 예외
-            message = ErrorCode.MEMBER_ID_PW_INVALIED.getMessage();
+            errorCode = ErrorCode.MEMBER_ID_PW_INVALIED;
         } else if (failed instanceof LockedException) {
             // 인증 거부 - 잠긴 계정
-            message = ErrorCode.PASSWORD_WRONG.getMessage();
+            errorCode = ErrorCode.PASSWORD_WRONG;
         } else if (failed instanceof AuthenticationCredentialsNotFoundException) {
             // 인증 요구가 거부됐을 때 던지는 예외
-            message = ErrorCode.MEMBER_ID_PW_INVALIED.getMessage();
+            errorCode = ErrorCode.MEMBER_ID_PW_INVALIED;
         } else if (failed instanceof DisabledException) {
             //인증 거부 - 계정 비활성화
-            message = ErrorCode.DISABLED_MEMBER.getMessage();
+            errorCode = ErrorCode.DISABLED_MEMBER;
         } else if (failed instanceof AccountExpiredException) {
             //인증 거부 - 계정 유효기간 만료
-            message = ErrorCode.DORMANT_ACCOUNT.getMessage();
+            errorCode = ErrorCode.DORMANT_ACCOUNT;
         } else if (failed instanceof CredentialsExpiredException) {
-            //인증 거부 - 비밀번호 유효기간 만료
-            message = ErrorCode.DISABLED_MEMBER.getMessage();
+            //인증 거부 - 비밀번호 유효기간 만료 -> vue 화면 이동
+            errorCode = ErrorCode.PASSWORD_DATE_OVER;
         } else {
-            message = ErrorCode.ANOTHER_ERROR.getMessage();
+            errorCode = ErrorCode.ANOTHER_ERROR;
         }
-        return message;
+        return errorCode;
     }
-
-
 }

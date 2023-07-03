@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 @Configuration
 public class SwaggerConfig {
-
     @Bean
     public GroupedOpenApi OpenApi() {
         String[] paths = {"/api/**"};
