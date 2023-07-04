@@ -16,7 +16,7 @@ public class passwordConfig {
     }
 
     public BCryptPasswordEncoder bcryptPasswordEncoder() {
-        return new BCryptPasswordEncoder(25);
+        return new BCryptPasswordEncoder(13);
     }
 
     public Pbkdf2PasswordEncoder pbkdf2PasswordEncoder() {

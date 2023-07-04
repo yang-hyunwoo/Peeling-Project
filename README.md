@@ -7,6 +7,8 @@
 - querydsl (Q클래스 생성 완료)
 - jwt (적용 완료 ,refresh_token 까지 완료)
 - oauth (google , naver 적용 완료)
+- swagger (적용 완료)
+- p6spy (적용 완료)
 ```
 
 현재 security + jwt 개발을 완료 하였다.<br>

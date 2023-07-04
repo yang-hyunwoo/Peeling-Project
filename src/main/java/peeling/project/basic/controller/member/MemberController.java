@@ -45,4 +45,9 @@ public class MemberController {
     public String aaa2() {
         return "aaa2";
     }
+
+    @GetMapping("/admin")
+    public String admin() {
+        return "admin";
+    }
 }

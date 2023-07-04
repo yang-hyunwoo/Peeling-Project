@@ -43,4 +43,10 @@ public class JoinMemberReqDto {
     }
 
 
+    public String toString() {
+        return "JoinMemberReqDto(username=" + this.getUsername() +
+                ", email=" + this.getEmail() +
+                ", fullname=" + this.getFullname() +
+                ")";
+    }
 }
