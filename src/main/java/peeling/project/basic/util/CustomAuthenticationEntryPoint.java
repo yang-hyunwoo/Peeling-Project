@@ -31,7 +31,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                 Cookie[] cookies = request.getCookies();
                 if (cookies != null) {
                     for (Cookie cookie : cookies) {
-                        if (cookie.getName().equals("PA_T") || cookie.getName().equals("PR_T")) {
+                        if (cookie.getName().equals("PA_T") || cookie.getName().equals("PR_T")||cookie.getName().equals("PA_AUT")) {
                             ResponseCookie build = ResponseCookie.from(cookie.getName(), "")
                                     .maxAge(0)
                                     .path("/")

@@ -1,24 +1,33 @@
 package peeling.project.basic.util.aop;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
+import peeling.project.basic.auth.LoginUser;
+import peeling.project.basic.dto.request.log.LogReqDto;
+import peeling.project.basic.service.log.LogService;
 import java.lang.reflect.Method;
 
-/*
-추후 log table 생성 후 저장 로직 추가
- */
+/* TODO SecurityContextHolder.getContext().getAuthentication().getPrincipal() 값이 있을 경우에만 디비에 로그가 저장이 된다.
+        log 테이블에 member가 연관관계로 되어 있어서 그렇다.
+        이대로 갈지 로그 테이블을 조금 수정을 해야 될지 고민을 해 봐야 겠다..
+*/
+
+@Slf4j
 @Component
 @Aspect
-@Slf4j
+@RequiredArgsConstructor
 public class AspectAdvice {
+
+    private final LogService logService;
     private ThreadLocal<AspectUUID> traceIdHolder = new ThreadLocal<>();
 
     @Pointcut("execution(* peeling.project.basic.controller..*.*(..))")
@@ -28,19 +37,21 @@ public class AspectAdvice {
 
     //uuid 생성
     private void syncTraceId() {
-            traceIdHolder.set(new AspectUUID());
+        traceIdHolder.set(new AspectUUID());
     }
 
     //메소드 실행전
     @Before("cut()")
     public void before(JoinPoint joinPoint) {
         syncTraceId();
+
         Object[] args = joinPoint.getArgs();    //joinPoint 안의 argument값을 가져옴
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod(); //메소드의 이름
         String classMethodName = methodSignature.getDeclaringType().getSimpleName()+"."+method.getName();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         String httpMethod = request.getMethod();
+        String uuid = traceIdHolder.get().getUUID();
 //        String s = methodSignature.getDeclaringTypeName(); package 경로 까지 포함
         String value = "";
         for(Object obj : args) {
@@ -48,8 +59,8 @@ public class AspectAdvice {
                 value = args[0].toString();
             }
         }
-        log.info("before = threadLocalUUID : [{}] httpMethod : [{}] method : [{}] value : [{}]", traceIdHolder.get().getUUID(), httpMethod, classMethodName, value);
-
+        loginUserChk(uuid , true , classMethodName, httpMethod, value,null,null);
+        log.info("before = threadLocalUUID : [{}] httpMethod : [{}] method : [{}] value : [{}]", uuid, httpMethod, classMethodName, value);
     }
 
     //메소드 실행후
@@ -60,7 +71,9 @@ public class AspectAdvice {
         String classMethodName = methodSignature.getDeclaringType().getSimpleName()+"."+method.getName();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         String httpMethod = request.getMethod();
-        log.info("afterReturn = threadLocalUUID : [{}] httpMethod : [{}] : method : [{}] returnObj : [{}]", traceIdHolder.get().getUUID(), httpMethod, classMethodName, returnObj);
+        String uuid = traceIdHolder.get().getUUID();
+        loginUserChk(uuid , true , classMethodName, httpMethod, null,returnObj.toString(),null);
+        log.info("afterReturn = threadLocalUUID : [{}] httpMethod : [{}] : method : [{}] returnObj : [{}]", uuid, httpMethod, classMethodName, returnObj);
     }
 
     //메소드 실행후 오류
@@ -71,7 +84,9 @@ public class AspectAdvice {
         String classMethodName = methodSignature.getDeclaringType().getSimpleName()+"."+method.getName();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         String httpMethod = request.getMethod();
-        log.info("afterThrow = threadLocalUUID : [{}] httpMethod : [{}] : method : [{}] exceptionMessage : [{}]", traceIdHolder.get().getUUID(), httpMethod, classMethodName, e.getMessage());
+        String uuid = traceIdHolder.get().getUUID();
+        loginUserChk(uuid , false , classMethodName, httpMethod, null,null,e.getMessage());
+        log.info("afterThrow = threadLocalUUID : [{}] httpMethod : [{}] : method : [{}] exceptionMessage : [{}]", uuid, httpMethod, classMethodName, e.getMessage());
     }
 
     //메소드 실행전,후 timer
@@ -86,10 +101,40 @@ public class AspectAdvice {
         try {
             return joinPoint.proceed();
         } finally {
+            String uuid = traceIdHolder.get().getUUID();
             long finish = System.currentTimeMillis();
             long timeMs = finish - start;
-            log.info("timer = threadLocalUUID : [{}] httpMethod : [{}] : method : [{}] timeMs = [{}]", traceIdHolder.get().getUUID(), httpMethod, classMethodName, timeMs);
+            log.info("timer = threadLocalUUID : [{}] httpMethod : [{}] : method : [{}] timeMs = [{}]", uuid, httpMethod, classMethodName, timeMs);
             traceIdHolder.remove();
+
+        }
+    }
+
+    /**
+     * log 테이블 insert principal 이 anonymousUser 일 경우는 로그인이 되어 있지 않은 상태여서 member를 가져올수가 없어서 분기 처리
+     * @param uuid
+     * @param sucesStts
+     * @param classMethodName
+     * @param httpMethod
+     * @param response
+     * @param request
+     * @param errorMsg
+     */
+    private void loginUserChk(String uuid,boolean sucesStts,String classMethodName, String httpMethod, String response,String request , String errorMsg) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        LogReqDto logReqDto = LogReqDto.of(uuid,
+                sucesStts,
+                classMethodName,
+                httpMethod,
+                response,
+                request,
+                errorMsg);
+        if (!principal.equals("anonymousUser")) {
+            LoginUser loginUser = (LoginUser) principal;
+            logService.logInsert(logReqDto, loginUser);
         }
     }
 }
+/*
+추후 log table 생성 후 저장 로직 추가
+ */
