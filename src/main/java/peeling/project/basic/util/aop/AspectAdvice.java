@@ -135,6 +135,4 @@ public class AspectAdvice {
         }
     }
 }
-/*
-추후 log table 생성 후 저장 로직 추가
- */
+

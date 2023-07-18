@@ -16,11 +16,11 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         ObjectMapper om = new ObjectMapper();
-        Response<String> error = Response.error("ERROR", HttpStatus.FORBIDDEN.value(), ErrorCode.NO_AUTHORIZATION.getMessage());
+        Response<String> error = Response.error("ERROR", HttpStatus.UNAUTHORIZED.value(), ErrorCode.NO_AUTHORIZATION.getMessage());
         String responseBody = om.writeValueAsString(error);
         response.setContentType("application/json");
         response.setCharacterEncoding("utf-8");
-        response.setStatus(403);
+        response.setStatus(401);
         response.getWriter().println(responseBody);
     }
 }

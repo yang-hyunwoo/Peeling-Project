@@ -18,7 +18,7 @@ public enum ErrorCode {
     MEMBER_INVALIED(HttpStatus.RESET_CONTENT , "존재하지 않는 사용자입니다."),
     ENCRYPTION_ERROR(HttpStatus.CONFLICT, "암호화 오류 입니다."),
     DECODE_ERROR(HttpStatus.CONFLICT, "복호화 오류 입니다."),
-    NO_AUTHORIZATION(HttpStatus.CONFLICT, "권한이 없습니다."),
+    NO_AUTHORIZATION(HttpStatus.UNAUTHORIZED, "권한이 없습니다."),
     FIRST_LOGIN_ING(HttpStatus.CONFLICT, "로그인을 진행해 주세요."),
     ;
 

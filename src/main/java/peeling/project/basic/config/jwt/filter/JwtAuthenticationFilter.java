@@ -23,8 +23,8 @@ import peeling.project.basic.util.CustomResponseUtil;
 
 import java.io.IOException;
 
-import static peeling.project.basic.config.jwt.JwtProcess.CreateCookie;
-import static peeling.project.basic.config.jwt.JwtProcess.CreateCookieJwt;
+import static peeling.project.basic.config.jwt.JwtProcess.createCookie;
+import static peeling.project.basic.config.jwt.JwtProcess.createCookieJwt;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -84,9 +84,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             response.addHeader("PA_AUT", encrypt);
         } else {
             //쿠키 시간은 동일하게 맞춤 accesstoken에 expired 타임이 있기 때문 ??...;
-            response.addHeader("Set-cookie", CreateCookieJwt(accessToken, "PA_T").toString());
-            response.addHeader("Set-cookie", CreateCookieJwt(refreshToken, "PR_T").toString());
-            response.addHeader("Set-cookie", CreateCookie(encrypt, "PA_AUT").toString());
+            response.addHeader("Set-cookie", createCookieJwt(accessToken, "PA_T").toString());
+            response.addHeader("Set-cookie", createCookieJwt(refreshToken, "PR_T").toString());
+            response.addHeader("Set-cookie", createCookie(encrypt, "PA_AUT").toString());
         }
 
         boolean dbInsert = false;

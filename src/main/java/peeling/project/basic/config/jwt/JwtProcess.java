@@ -77,7 +77,7 @@ public class JwtProcess {
         return ChronoUnit.DAYS.between(now, refreshExpired) <= 1 && ChronoUnit.DAYS.between(now, refreshExpired) >= 0;
     }
 
-    public static ResponseCookie CreateCookieJwt(String accessToken , String cookieName) {
+    public static ResponseCookie createCookieJwt(String accessToken , String cookieName) {
         return ResponseCookie.from(cookieName, accessToken.split(" ")[1].trim())
                 .maxAge(7 * 24 * 60 * 60)
 //                    .httpOnly(true)
@@ -86,7 +86,7 @@ public class JwtProcess {
                 .build();
     }
 
-    public static ResponseCookie CreateCookie(String cookieValue , String cookieName) {
+    public static ResponseCookie createCookie(String cookieValue , String cookieName) {
         return ResponseCookie.from(cookieName, cookieValue)
                 .maxAge(7 * 24 * 60 * 60)
 //                    .httpOnly(true)
