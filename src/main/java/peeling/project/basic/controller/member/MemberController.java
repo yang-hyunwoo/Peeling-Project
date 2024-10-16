@@ -19,15 +19,16 @@ import peeling.project.basic.util.Response;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@Tag(name = "Template", description = "템플릿 API Document")
+@Tag(name = "회원관련", description = "MemberController")
 public class MemberController {
 
     private final MemberService memberService;
 
-    @Operation(summary = "TEST 요청", description = "TEST 삭제됩니다.", tags = { "MemberController" })
+//    @Operation(summary = "사용자 회원 가입", description = "사용자 회원 가입", tags = { "MemberController" })
+    @Operation(summary = "사용자 회원 가입")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "successful operation"),
-            @ApiResponse(responseCode = "400", description = "bad request operation", content = @Content(schema = @Schema(implementation = Response.class)))
+            @ApiResponse(responseCode = "200", description = "회원 가입 성공"),
+            @ApiResponse(responseCode = "400", description = "회원 가입 실패", content = @Content(schema = @Schema(implementation = Response.class)))
     })
     @PostMapping("/join")
     public Response<JoinMemberResDto> join(@RequestBody @Valid JoinMemberReqDto joinReqDto , BindingResult bindingResult) {

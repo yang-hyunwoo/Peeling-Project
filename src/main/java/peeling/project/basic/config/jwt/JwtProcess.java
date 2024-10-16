@@ -25,7 +25,6 @@ public class JwtProcess {
 
     //토큰 생성
     public static String create(LoginUser loginUser) {
-        Aes256Util aes256 = new Aes256Util();
         String jwtToken = JWT.create()
                 .withSubject("peel-project")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperty.getExpirationTime()))
@@ -37,7 +36,6 @@ public class JwtProcess {
 
     //refresh 토큰 생성
     public static String refresh(LoginUser loginUser) {
-        Aes256Util aes256 = new Aes256Util();
         String jwtToken = JWT.create()
                 .withSubject("peel-project")
                 .withExpiresAt(new Date(System.currentTimeMillis() +JwtProperty.getExpirationTime()* 20L))
@@ -49,7 +47,6 @@ public class JwtProcess {
 
     //토큰 검증 (return 되는 LoginUser 객체를 강제로 시큐리티 세션에 직접 주입)
     public static LoginUser verify(String token)  {
-        Aes256Util aes256 = new Aes256Util();
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey())))
                 .build()
                 .verify( token);
@@ -60,17 +57,15 @@ public class JwtProcess {
     }
 
     public static Long verifyRefresh(String token) {
-        Aes256Util aes256 = new Aes256Util();
         String decrypt = token;
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey()))).build().verify(decrypt);
         return Long.parseLong(decodedJWT.getClaim("id").asString());
     }
 
     public static boolean verifyExpired(String token) {
-        Aes256Util aes256 = new Aes256Util();
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(returnByte(JwtProperty.getSecretKey())))
                 .build()
-                .verify(aes256.decrypt(AesProperty.getAesRefresh(), token));
+                .verify(token);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime refreshExpired = decodedJWT.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         //리프래시 토큰 만료일이 하루 남았을 경우 재생성하기 위함
