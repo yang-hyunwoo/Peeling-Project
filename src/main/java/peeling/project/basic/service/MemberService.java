@@ -27,7 +27,7 @@ public class MemberService {
 
         //1. 동일 유저네임 존재 검사
         memberRepository.findByEmail(joinReqDto.getEmail()).ifPresent(user -> {
-            throw new CustomApiException(ErrorCode.DUPLICATED_EMAIL.getMessage());
+            throw new CustomApiException(ErrorCode.LG_DUPLICATED_EMAIL.getMessage());
         });
         //2. 패스워드 인코딩
 //        Member member = memberRepository.save(joinReqDto.toEntity(bCryptPasswordEncoder));
