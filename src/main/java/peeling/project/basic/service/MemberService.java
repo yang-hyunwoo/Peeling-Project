@@ -37,13 +37,13 @@ public class MemberService {
     }
 
     public void memberLgnFailCnt(String email) {
-        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new CustomApiException(ErrorCode.MEMBER_INVALIED.getMessage()));
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new CustomApiException(ErrorCode.LG_MEMBER_INVALIED.getMessage()));
         if(member.getLgnFlrCnt() <=4) {
             member.lgnFlrCntPlus();
         }
     }
 
     public void memberLgnFailInit(Long id) {
-        memberRepository.findById(id).orElseThrow(() -> new CustomApiException(ErrorCode.MEMBER_INVALIED.getMessage())).lgnFlrCntInit();
+        memberRepository.findById(id).orElseThrow(() -> new CustomApiException(ErrorCode.LG_MEMBER_INVALIED.getMessage())).lgnFlrCntInit();
     }
 }

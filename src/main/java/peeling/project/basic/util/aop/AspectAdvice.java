@@ -68,7 +68,7 @@ public class AspectAdvice {
     public void afterReturn(JoinPoint joinPoint , Object returnObj){
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod(); //메소드의 이름
-        String classMethodName = methodSignature.getDeclaringType().getSimpleName()+"."+method.getName();
+        String classMethodName = methodSignature.getDeclaringType().getSimpleName() + "." + method.getName();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
         String httpMethod = request.getMethod();
         String uuid = traceIdHolder.get().getUUID();

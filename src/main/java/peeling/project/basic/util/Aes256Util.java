@@ -25,7 +25,7 @@ public class Aes256Util {
             return Base64.getEncoder().encodeToString(encrypted);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new CustomApiException(ErrorCode.ENCRYPTION_ERROR.getMessage());
+            throw new CustomApiException(ErrorCode.LG_ENCRYPTION_ERROR.getMessage());
         }
     }
 
@@ -41,7 +41,7 @@ public class Aes256Util {
             byte[] decrypted = cipher.doFinal(decodedBytes);
             return new String(decrypted, "UTF-8");
         } catch (Exception e){
-            throw new CustomApiException(ErrorCode.DECODE_ERROR.getMessage());
+            throw new CustomApiException(ErrorCode.LG_DECODE_ERROR.getMessage());
         }
     }
 }

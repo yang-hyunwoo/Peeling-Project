@@ -24,7 +24,7 @@ public class LoginService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         log.info("email:::: {}" , email);
-        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new InternalAuthenticationServiceException(ErrorCode.MEMBER_INVALIED.getMessage()));
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new InternalAuthenticationServiceException(ErrorCode.LG_MEMBER_INVALIED.getMessage()));
         return new LoginUser(member);
     }
 }

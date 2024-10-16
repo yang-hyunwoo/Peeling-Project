@@ -22,7 +22,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         //인증이 필요 없는 url 에서는 작동 하지 않는다.
         String exception = (String)request.getAttribute("exception");
         if(exception==null) {
-            exception = ErrorCode.FIRST_LOGIN_ING.getMessage();
+            exception = ErrorCode.LG_FIRST_LOGIN_ING.getMessage();
         }
             if (localCookie) {
 

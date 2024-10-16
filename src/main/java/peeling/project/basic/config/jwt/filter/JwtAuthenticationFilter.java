@@ -15,16 +15,15 @@ import peeling.project.basic.config.jwt.JwtProcess;
 import peeling.project.basic.dto.request.member.LoginReqDto;
 import peeling.project.basic.dto.response.member.LoginResDto;
 import peeling.project.basic.exception.error.ErrorCode;
-import peeling.project.basic.property.AesProperty;
 import peeling.project.basic.property.JwtProperty;
 import peeling.project.basic.service.MemberService;
-import peeling.project.basic.util.Aes256Util;
 import peeling.project.basic.util.CustomResponseUtil;
 
 import java.io.IOException;
 
 import static peeling.project.basic.config.jwt.JwtProcess.createCookie;
 import static peeling.project.basic.config.jwt.JwtProcess.createCookieJwt;
+import static peeling.project.basic.exception.error.ErrorCode.*;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -109,29 +108,29 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         if (failed instanceof BadCredentialsException) {
             //비밀번호가 일치하지 않을 때 던지는 예외
-            errorCode = ErrorCode.MEMBER_ID_PW_INVALIED;
+            errorCode = LG_MEMBER_ID_PW_INVALIED;
             ObjectMapper om = new ObjectMapper();
             memberService.memberLgnFailCnt(om.readValue(request.getInputStream(), LoginReqDto.class).getEmail());//실패 횟수 증가
         } else if (failed instanceof InternalAuthenticationServiceException) {
             //존재하지 않는 아이디일 때 던지는 예외
-            errorCode = ErrorCode.MEMBER_ID_PW_INVALIED;
+            errorCode = LG_MEMBER_ID_PW_INVALIED;
         } else if (failed instanceof LockedException) {
             // 인증 거부 - 잠긴 계정
-            errorCode = ErrorCode.PASSWORD_WRONG;
+            errorCode = LG_PASSWORD_WRONG;
         } else if (failed instanceof AuthenticationCredentialsNotFoundException) {
             // 인증 요구가 거부됐을 때 던지는 예외
-            errorCode = ErrorCode.MEMBER_ID_PW_INVALIED;
+            errorCode = LG_MEMBER_ID_PW_INVALIED;
         } else if (failed instanceof DisabledException) {
             //인증 거부 - 계정 비활성화
-            errorCode = ErrorCode.DISABLED_MEMBER;
+            errorCode = LG_DISABLED_MEMBER;
         } else if (failed instanceof AccountExpiredException) {
             //인증 거부 - 계정 유효기간 만료
-            errorCode = ErrorCode.DORMANT_ACCOUNT;
+            errorCode = LG_DORMANT_ACCOUNT;
         } else if (failed instanceof CredentialsExpiredException) {
             //인증 거부 - 비밀번호 유효기간 만료 -> vue 화면 이동
-            errorCode = ErrorCode.PASSWORD_DATE_OVER;
+            errorCode = LG_PASSWORD_DATE_OVER;
         } else {
-            errorCode = ErrorCode.ANOTHER_ERROR;
+            errorCode = LG_ANOTHER_ERROR;
         }
         return errorCode;
     }
