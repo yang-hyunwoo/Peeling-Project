@@ -67,8 +67,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         if (isHeaderVerify(request)) {
             //토큰이 존재
             String token = request.getHeader(JwtProperty.getHeader()).split(" ")[1].trim();
-            Aes256Util aes256 = new Aes256Util();
-            String encrypt = aes256.decrypt(AesProperty.getAesBody(), request.getHeader("PA_AUT"));
 
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
@@ -76,7 +74,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                 setAuthentication(loginUser);
             } catch (TokenExpiredException e) {
                 //로그인 auto 체크
-                if(!Boolean.parseBoolean(encrypt)) {
+                if(!Boolean.parseBoolean(request.getHeader("PA_AUT"))) {
                     if(autoChkVerifyExpired(e.getExpiredOn())) {
                         request.setAttribute("exception", "access토큰 만료");
                     }
@@ -103,14 +101,12 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         if (StringUtils.hasText(isCookieVerify(request,"PA_T")) && StringUtils.hasText(isCookieVerify(request,"PA_AUT"))) {
             //토큰이 존재
             String token = isCookieVerify(request , "PA_T");
-            Aes256Util aes256 = new Aes256Util();
-            String encrypt = aes256.decrypt(AesProperty.getAesBody(), isCookieVerify(request, "PA_AUT"));
             try {   //토큰에 아무 이상이 없을 경우
                 LoginUser loginUser = JwtProcess.verify(token);
                 //임시 세션 (UserDetails 타입 or username) id , role 만 있음
                 setAuthentication(loginUser);
             } catch (TokenExpiredException e) {
-                if(!Boolean.parseBoolean(encrypt)) {
+                if(!Boolean.parseBoolean(isCookieVerify(request, "PA_AUT"))) {
                     if(autoChkVerifyExpired(e.getExpiredOn())) {
                         request.setAttribute("exception", "access토큰 만료");
                     }

@@ -28,12 +28,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String accessToken = JwtProcess.create(loginUser);
         String refreshToken = JwtProcess.refresh(loginUser);
 
-        Aes256Util aes256 = new Aes256Util();
-        String encrypt = aes256.encrypt(AesProperty.getAesBody(), "true");
+
 
         response.addHeader("Set-cookie", createCookieJwt(accessToken, "PA_T").toString());
         response.addHeader("Set-cookie", createCookieJwt(refreshToken, "PR_T").toString());
-        response.addHeader("Set-cookie", createCookie(encrypt, "PA_AUT").toString());
+        response.addHeader("Set-cookie", createCookie("true", "PA_AUT").toString());
 
         clearAuthenticationAttributes(request, response);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

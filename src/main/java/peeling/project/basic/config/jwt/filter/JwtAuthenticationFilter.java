@@ -75,18 +75,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
          * 헤더로 설정 or 쿠키로 설정
          */
         LoginResDto loginRespDto = new LoginResDto(loginUser.getMember());
-        memberService.memberLgnFailInit(loginUser.getMember().getId()); // 로그인 실패 횟수 초기화d
-        Aes256Util aes256 = new Aes256Util();
-        String encrypt = aes256.encrypt(AesProperty.getAesBody(), loginReqDto.getChk());
+        memberService.memberLgnFailInit(loginUser.getMember().getId()); // 로그인 실패 횟수 초기화
         if(localCookie) {
             response.addHeader(JwtProperty.getHeader(), accessToken);
             response.addHeader("REFRESH_TOKEN", refreshToken);
-            response.addHeader("PA_AUT", encrypt);
+            response.addHeader("PA_AUT", loginReqDto.getChk());
         } else {
             //쿠키 시간은 동일하게 맞춤 accesstoken에 expired 타임이 있기 때문 ??...;
             response.addHeader("Set-cookie", createCookieJwt(accessToken, "PA_T").toString());
             response.addHeader("Set-cookie", createCookieJwt(refreshToken, "PR_T").toString());
-            response.addHeader("Set-cookie", createCookie(encrypt, "PA_AUT").toString());
+            response.addHeader("Set-cookie", createCookie(loginReqDto.getChk(), "PA_AUT").toString());
         }
 
         boolean dbInsert = false;
