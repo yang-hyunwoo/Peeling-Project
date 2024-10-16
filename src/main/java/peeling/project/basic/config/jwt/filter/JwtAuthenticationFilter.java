@@ -75,7 +75,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
          * 헤더로 설정 or 쿠키로 설정
          */
         LoginResDto loginRespDto = new LoginResDto(loginUser.getMember());
-        memberService.memberLgnFailInit(loginUser.getMember().getId()); // 로그인 실패 횟수 초기화
+        memberService.memberLgnFailInit(loginUser.getMember().getId()); // 로그인 실패 횟수 초기화d
         Aes256Util aes256 = new Aes256Util();
         String encrypt = aes256.encrypt(AesProperty.getAesBody(), loginReqDto.getChk());
         if(localCookie) {
