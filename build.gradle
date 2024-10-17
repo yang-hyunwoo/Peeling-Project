@@ -48,6 +48,8 @@ dependencies {
 
 //	implementation 'org.springdoc:springdoc-openapi-ui:1.6.15'  boot 2.x.x 버전 일 경우
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'  // boot 3.x.x 버전 일 경우
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 tasks.named('test') {
